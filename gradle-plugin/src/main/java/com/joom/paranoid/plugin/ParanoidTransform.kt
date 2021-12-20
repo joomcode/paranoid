@@ -24,6 +24,7 @@ import com.android.build.api.transform.Transform
 import com.android.build.api.transform.TransformException
 import com.android.build.api.transform.TransformInvocation
 import com.android.build.api.transform.TransformOutputProvider
+import com.android.build.api.variant.VariantInfo
 import com.joom.paranoid.processor.ParanoidProcessor
 import java.io.File
 import java.security.SecureRandom
@@ -47,11 +48,6 @@ class ParanoidTransform(
         input.scopes,
         format
       )
-    }
-
-    if (!paranoid.isEnabled) {
-      copyInputsToOutputs(inputs.map { it.file }, outputs)
-      return
     }
 
     val processor = ParanoidProcessor(
@@ -114,12 +110,25 @@ class ParanoidTransform(
     return paranoid.isCacheable
   }
 
+  override fun applyToVariant(variant: VariantInfo): Boolean {
+    if (!paranoid.isEnabled) {
+      return false
+    }
+
+    return when (paranoid.applyToBuildTypes) {
+      BuildType.NONE -> false
+      BuildType.ALL -> true
+      BuildType.NOT_DEBUGGABLE -> !variant.isDebuggable
+    }
+  }
+
   override fun getParameterInputs(): MutableMap<String, Any?> {
     return mutableMapOf(
       "version" to Build.VERSION,
       "enabled" to paranoid.isEnabled,
       "includeSubprojects" to paranoid.includeSubprojects,
-      "obfuscationSeed" to paranoid.obfuscationSeed
+      "obfuscationSeed" to paranoid.obfuscationSeed,
+      "applyToBuildTypes" to paranoid.applyToBuildTypes
     )
   }
 
