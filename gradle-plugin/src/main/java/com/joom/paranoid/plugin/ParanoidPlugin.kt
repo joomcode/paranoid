@@ -16,26 +16,22 @@
 
 package com.joom.paranoid.plugin
 
-import com.android.build.gradle.BaseExtension
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.JavaPlugin
 
 class ParanoidPlugin : Plugin<Project> {
-  private lateinit var extension: ParanoidExtension
-
   override fun apply(project: Project) {
-    extension = project.extensions.create("paranoid", ParanoidExtension::class.java)
-
-    try {
-      val android = project.extensions.getByName("android") as BaseExtension
-      project.addDependencies(getDefaultConfiguration())
-      android.registerTransform(ParanoidTransform(extension, android))
-    } catch (exception: UnknownDomainObjectException) {
-      throw GradleException("Paranoid plugin must be applied *AFTER* Android plugin", exception)
+    if (!project.hasAndroid) {
+      throw GradleException("Paranoid plugin must be applied *AFTER* Android plugin")
     }
+
+    val extension = project.extensions.create("paranoid", ParanoidExtension::class.java)
+    val transform = ParanoidTransform(extension, project.android)
+
+    project.addDependencies(getDefaultConfiguration())
+    project.android.registerTransform(transform)
   }
 
   private fun getDefaultConfiguration(): String {
@@ -43,7 +39,6 @@ class ParanoidPlugin : Plugin<Project> {
   }
 
   private fun Project.addDependencies(configurationName: String) {
-    val version = Build.VERSION
-    dependencies.add(configurationName, "com.joom.paranoid:paranoid-core:$version")
+    dependencies.add(configurationName, "com.joom.paranoid:paranoid-core:${Build.VERSION}")
   }
 }
