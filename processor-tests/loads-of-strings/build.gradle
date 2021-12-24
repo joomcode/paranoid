@@ -1,19 +1,19 @@
 buildscript {
   dependencies {
-    classpath "io.michaelrocks:paranoid-gradle-plugin:$version"
+    classpath "com.joom.paranoid:paranoid-gradle-plugin:$version"
   }
 }
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'io.michaelrocks.paranoid'
+apply plugin: 'com.joom.paranoid'
 
 android {
   compileSdkVersion androidCompileSdkVersion
   buildToolsVersion androidBuildToolsVersion
 
   defaultConfig {
-    applicationId "io.michaelrocks.paranoid.processor.loadsofstrings"
+    applicationId "com.joom.paranoid.processor.loadsofstrings"
     minSdkVersion androidMinSdkVersion
     targetSdkVersion androidTargetSdkVersion
     versionCode 1

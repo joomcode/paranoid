@@ -13,5 +13,5 @@ android {
 }
 
 dependencies {
-  implementation "io.michaelrocks:paranoid-core:$version"
+  implementation "com.joom.paranoid:paranoid-core:$version"
 }

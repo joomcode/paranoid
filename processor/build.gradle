@@ -22,8 +22,8 @@ jar {
 
 pablo {
   shadow {
-    relocate 'io.michaelrocks.paranoid'
-    relocate 'com.joom.grip', 'io.michaelrocks.paranoid.grip'
-    relocate 'org.objectweb.asm', 'io.michaelrocks.paranoid.asm'
+    relocate 'com.joom.paranoid'
+    relocate 'com.joom.grip', 'com.joom.paranoid.grip'
+    relocate 'org.objectweb.asm', 'com.joom.paranoid.asm'
   }
 }

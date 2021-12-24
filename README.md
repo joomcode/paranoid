@@ -1,4 +1,4 @@
-[![Build](https://github.com/MichaelRocks/paranoid/actions/workflows/build.yml/badge.svg)](https://github.com/MichaelRocks/paranoid/actions/workflows/build.yml)
+[![Build](https://github.com/joomcode/paranoid/actions/workflows/build.yml/badge.svg)](https://github.com/joomcode/paranoid/actions/workflows/build.yml)
 
 Paranoid
 ========
@@ -18,12 +18,12 @@ buildscript {
   }
 
   dependencies {
-    classpath 'io.michaelrocks:paranoid-gradle-plugin:0.3.7'
+    classpath 'com.joom.paranoid:paranoid-gradle-plugin:0.3.7'
   }
 }
 
 apply plugin: 'com.android.application'
-apply plugin: 'io.michaelrocks.paranoid'
+apply plugin: 'com.joom.paranoid'
 ```
 
 Now you can just annotate classes with strings that need to be obfuscated with `@Obfuscate`.
@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
 
 License
 =======
-    Copyright 2021 Michael Rozumyanskiy
+    Copyright 2021 SIA Joom
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

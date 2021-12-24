@@ -7,7 +7,7 @@ pablo {
     name = 'Paranoid'
     description = 'A string obfuscator for Android applications.'
     inceptionYear = '2016'
-    url = 'https://github.com/michaelrocks/paranoid'
+    url = 'https://github.com/joomcode/paranoid'
 
     licenses {
       license {
@@ -24,9 +24,9 @@ pablo {
       }
     }
     scm {
-      connection = 'scm:git:git://github.com/michaelrocks/paranoid.git'
-      developerConnection = 'scm:git:ssh://git@github.com/michaelrocks/paranoid.git'
-      url = 'https://github.com/michaelrocks/paranoid'
+      connection = 'scm:git:git://github.com/joomcode/paranoid.git'
+      developerConnection = 'scm:git:ssh://git@github.com/joomcode/paranoid.git'
+      url = 'https://github.com/joomcode/paranoid'
     }
   }
 }

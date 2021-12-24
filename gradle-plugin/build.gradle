@@ -23,10 +23,10 @@ task generateBuildClass {
   outputs.dir generatedDir
 
   doLast {
-    final File buildClassFile = new File(generatedJavaSourcesDir, "io/michaelrocks/paranoid/plugin/Build.java")
+    final File buildClassFile = new File(generatedJavaSourcesDir, "com/joom/paranoid/plugin/Build.java")
     buildClassFile.parentFile.mkdirs()
     buildClassFile.text = "" +
-        "package io.michaelrocks.paranoid.plugin;\n" +
+        "package com.joom.paranoid.plugin;\n" +
         "\n" +
         "public class Build {\n" +
         "    public static final String VERSION = \"$version\";\n" +
@@ -56,6 +56,6 @@ idea {
 
 pablo {
   shadow {
-    relocate 'io.michaelrocks.paranoid'
+    relocate 'com.joom.paranoid'
   }
 }
