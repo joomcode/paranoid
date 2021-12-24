@@ -28,10 +28,14 @@ class ParanoidPlugin : Plugin<Project> {
     }
 
     val extension = project.extensions.create("paranoid", ParanoidExtension::class.java)
-    val transform = ParanoidTransform(extension, project.android)
+    val transform = ParanoidTransform(extension)
 
     project.addDependencies(getDefaultConfiguration())
     project.android.registerTransform(transform)
+
+    project.afterEvaluate {
+      extension.bootClasspath = project.android.bootClasspath
+    }
   }
 
   private fun getDefaultConfiguration(): String {

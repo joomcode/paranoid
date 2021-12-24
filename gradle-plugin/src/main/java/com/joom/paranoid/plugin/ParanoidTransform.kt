@@ -24,15 +24,13 @@ import com.android.build.api.transform.Transform
 import com.android.build.api.transform.TransformException
 import com.android.build.api.transform.TransformInvocation
 import com.android.build.api.transform.TransformOutputProvider
-import com.android.build.gradle.BaseExtension
 import com.joom.paranoid.processor.ParanoidProcessor
 import java.io.File
 import java.security.SecureRandom
 import java.util.EnumSet
 
 class ParanoidTransform(
-  private val paranoid: ParanoidExtension,
-  private val android: BaseExtension
+  private val paranoid: ParanoidExtension
 ) : Transform() {
 
   override fun transform(invocation: TransformInvocation) {
@@ -69,7 +67,7 @@ class ParanoidTransform(
       classpath = invocation.referencedInputs.flatMap { input ->
         input.jarInputs.map { it.file } + input.directoryInputs.map { it.file }
       },
-      bootClasspath = android.bootClasspath,
+      bootClasspath = paranoid.bootClasspath,
       projectName = invocation.context.path.replace(":transformClassesWithParanoidFor", ":").replace(':', '$')
     )
 

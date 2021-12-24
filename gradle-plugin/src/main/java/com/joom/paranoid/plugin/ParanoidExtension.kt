@@ -16,9 +16,12 @@
 
 package com.joom.paranoid.plugin
 
+import java.io.File
+
 open class ParanoidExtension {
   var isEnabled: Boolean = true
   var isCacheable: Boolean = false
   var includeSubprojects: Boolean = false
   var obfuscationSeed: Int? = null
+  var bootClasspath: List<File> = emptyList()
 }
