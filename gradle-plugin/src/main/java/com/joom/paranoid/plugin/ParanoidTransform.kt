@@ -115,6 +115,10 @@ class ParanoidTransform(
       return false
     }
 
+    if (variant.isTest) {
+      return false
+    }
+
     return when (paranoid.applyToBuildTypes) {
       BuildType.NONE -> false
       BuildType.ALL -> true
