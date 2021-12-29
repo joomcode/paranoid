@@ -1,6 +1,6 @@
 allprojects {
   group = 'com.joom.paranoid'
-  version = '0.3.8'
+  version = '0.3.9'
 
   ext.javaVersion = JavaVersion.VERSION_1_8
   ext.kotlinVersion = '1.5.32'
