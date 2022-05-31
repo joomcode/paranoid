@@ -1,15 +1,19 @@
-rootProject.name = 'paranoid'
-
-include ':core'
-include ':processor'
-include ':gradle-plugin'
-
-if (!properties['bootstrap'].toBoolean()) {
-  include ':sample'
-  include ':processor-tests:all-chars-string'
-  include ':processor-tests:loads-of-strings'
-  include ':processor-tests:long-string'
-  include ':processor-tests:subproject'
-  include ':processor-tests:subproject-android'
-  include ':processor-tests:subproject-java'
+def isDevelopment = properties['development'].toBoolean()
+includeBuild('paranoid') {
+  if (isDevelopment) {
+    dependencySubstitution {
+      substitute module('com.joom.paranoid:paranoid-gradle-plugin') using project(':gradle-plugin')
+      substitute module('com.joom.paranoid:paranoid-processor') using project(':processor')
+      substitute module('com.joom.paranoid:paranoid-core') using project(':core')
+    }
+  }
 }
+
+include ':sample'
+include ':processor-tests:all-chars-string'
+include ':processor-tests:loads-of-strings'
+include ':processor-tests:long-string'
+include ':processor-tests:subproject'
+include ':processor-tests:subproject-android'
+include ':processor-tests:subproject-java'
+
