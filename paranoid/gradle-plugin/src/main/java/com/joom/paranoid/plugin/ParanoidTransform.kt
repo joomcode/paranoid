@@ -156,7 +156,7 @@ class ParanoidTransform(
     return when {
       manuallySetObfuscationSeed != null -> manuallySetObfuscationSeed
       !paranoid.isCacheable -> SecureRandom().nextInt()
-      else -> ObfuscationSeedCalculator.calculate(inputs)
+      else -> ObfuscationSeedCalculator.calculate(inputs) { it.file }
     }
   }
 }
