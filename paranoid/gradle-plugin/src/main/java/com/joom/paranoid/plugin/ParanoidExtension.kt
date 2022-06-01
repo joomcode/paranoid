@@ -23,7 +23,7 @@ import kotlin.properties.ReadWriteProperty
 
 open class ParanoidExtension {
   @Deprecated(IS_ENABLED_DEPRECATION_WARNING)
-  var isEnabled: Boolean by deprecatedProperty(false, IS_ENABLED_DEPRECATION_WARNING)
+  var isEnabled: Boolean by deprecatedProperty(true, IS_ENABLED_DEPRECATION_WARNING)
 
   @Deprecated(IS_CACHEABLE_DEPRECATION_WARNING)
   var isCacheable: Boolean by deprecatedProperty(false, IS_CACHEABLE_DEPRECATION_WARNING)
