@@ -15,6 +15,7 @@ allprojects {
     dependencies {
       classpath "com.android.tools.build:gradle:$androidToolsVersion"
       classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+      classpath "com.joom.paranoid:paranoid-gradle-plugin:$version"
     }
   }
 
