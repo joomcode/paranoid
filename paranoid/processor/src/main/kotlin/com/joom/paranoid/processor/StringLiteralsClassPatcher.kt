@@ -19,6 +19,7 @@ package com.joom.paranoid.processor
 import com.joom.grip.mirrors.toAsmType
 import com.joom.paranoid.processor.logging.getLogger
 import com.joom.paranoid.processor.model.Deobfuscator
+import com.joom.paranoid.processor.watermark.WatermarkClassVisitor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.commons.GeneratorAdapter
@@ -28,7 +29,7 @@ class StringLiteralsClassPatcher(
   private val stringRegistry: StringRegistry,
   asmApi: Int,
   delegate: ClassVisitor,
-) : ClassVisitor(asmApi, delegate) {
+) : WatermarkClassVisitor(asmApi, delegate) {
 
   private val logger = getLogger()
 
