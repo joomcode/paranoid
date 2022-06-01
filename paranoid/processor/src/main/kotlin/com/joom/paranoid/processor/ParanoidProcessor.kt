@@ -37,6 +37,7 @@ class ParanoidProcessor(
   private val classpath: Collection<File>,
   private val bootClasspath: Collection<File>,
   private val projectName: String,
+  private val validateClasspath: Boolean,
   private val asmApi: Int = Opcodes.ASM9,
 ) {
 
@@ -44,12 +45,17 @@ class ParanoidProcessor(
 
   private val grip: Grip = GripFactory.newInstance(asmApi).create(inputs + classpath + bootClasspath)
   private val stringRegistry = StringRegistryImpl(obfuscationSeed)
+  private val validator: Validator = Validator(grip, asmApi)
 
   fun process() {
     dumpConfiguration()
 
     require(inputs.size == outputs.size) {
       "Input collection $inputs and output collection $outputs have different sizes"
+    }
+
+    if (validateClasspath) {
+      validator.validate(classpath)
     }
 
     val analysisResult = Analyzer(grip).analyze(inputs)

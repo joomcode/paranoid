@@ -64,7 +64,8 @@ class ParanoidTransform(
         input.jarInputs.map { it.file } + input.directoryInputs.map { it.file }
       },
       bootClasspath = paranoid.bootClasspath,
-      projectName = invocation.context.path.replace(":transformClassesWithParanoidFor", ":").replace(':', '$')
+      projectName = invocation.context.path.replace(":transformClassesWithParanoidFor", ":").replace(':', '$'),
+      validateClasspath = false,
     )
 
     try {
