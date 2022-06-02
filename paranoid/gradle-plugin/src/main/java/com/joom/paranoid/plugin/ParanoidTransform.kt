@@ -112,11 +112,8 @@ class ParanoidTransform(
     return paranoid.isCacheable
   }
 
+  @Suppress("UnstableApiUsage")
   override fun applyToVariant(variant: VariantInfo): Boolean {
-    if (!paranoid.isEnabled) {
-      return false
-    }
-
     if (variant.isTest) {
       return false
     }
@@ -131,7 +128,6 @@ class ParanoidTransform(
   override fun getParameterInputs(): MutableMap<String, Any?> {
     return mutableMapOf(
       "version" to Build.VERSION,
-      "enabled" to paranoid.isEnabled,
       "includeSubprojects" to paranoid.includeSubprojects,
       "obfuscationSeed" to paranoid.obfuscationSeed,
       "applyToBuildTypes" to paranoid.applyToBuildTypes

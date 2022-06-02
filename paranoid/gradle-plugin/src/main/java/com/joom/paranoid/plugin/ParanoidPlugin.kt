@@ -58,8 +58,7 @@ class ParanoidPlugin : Plugin<Project> {
   }
 
   private fun registerParanoidForJava(extension: ParanoidExtension) {
-    @Suppress("DEPRECATION")
-    if (!extension.isEnabled || extension.applyToBuildTypes == BuildType.NONE) {
+    if (extension.applyToBuildTypes == BuildType.NONE) {
       return
     }
 
@@ -90,8 +89,7 @@ class ParanoidPlugin : Plugin<Project> {
   }
 
   private fun registerParanoidWithVariantApi(extension: ParanoidExtension) {
-    @Suppress("DEPRECATION")
-    if (!extension.isEnabled || extension.applyToBuildTypes == BuildType.NONE) {
+    if (extension.applyToBuildTypes == BuildType.NONE) {
       return
     }
 

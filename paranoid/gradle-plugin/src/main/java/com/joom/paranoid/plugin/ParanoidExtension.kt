@@ -22,8 +22,11 @@ import kotlin.properties.Delegates
 import kotlin.properties.ReadWriteProperty
 
 open class ParanoidExtension {
-  @Deprecated(IS_ENABLED_DEPRECATION_WARNING)
-  var isEnabled: Boolean by deprecatedProperty(true, IS_ENABLED_DEPRECATION_WARNING)
+
+  @Deprecated(IS_ENABLED_DEPRECATION_WARNING, replaceWith = ReplaceWith("applyToBuildTypes"))
+  var isEnabled: Boolean by deprecatedProperty(true, IS_ENABLED_DEPRECATION_WARNING) { enabled ->
+    if (enabled) applyToBuildTypes = BuildType.ALL else BuildType.NONE
+  }
 
   @Deprecated(IS_CACHEABLE_DEPRECATION_WARNING)
   var isCacheable: Boolean by deprecatedProperty(false, IS_CACHEABLE_DEPRECATION_WARNING)
@@ -35,9 +38,10 @@ open class ParanoidExtension {
   var bootClasspath: List<File> = emptyList()
   var applyToBuildTypes: BuildType = BuildType.ALL
 
-  private inline fun <reified T : Any> deprecatedProperty(initial: T, message: String): ReadWriteProperty<Any?, T> {
-    return Delegates.observable(initial) { _, _, _ ->
+  private inline fun <reified T : Any> deprecatedProperty(initial: T, message: String, crossinline onChange: (T) -> Unit = {}): ReadWriteProperty<Any?, T> {
+    return Delegates.observable(initial) { _, _, new ->
       getLogger().warn("WARNING: $message")
+      onChange(new)
     }
   }
 }
