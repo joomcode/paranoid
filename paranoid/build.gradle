@@ -1,5 +1,5 @@
 buildscript {
-  apply from: 'versions.gradle'
+  apply from: '../versions.gradle'
 }
 
 allprojects {
@@ -15,6 +15,7 @@ allprojects {
     dependencies {
       classpath "com.android.tools.build:gradle:$androidToolsVersion"
       classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+      classpath "io.michaelrocks.pablo:pablo:$pabloVersion"
     }
   }
 
