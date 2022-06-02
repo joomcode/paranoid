@@ -35,6 +35,7 @@ class ParanoidProcessor(
   private val outputs: List<File>,
   private val genPath: File,
   private val classpath: Collection<File>,
+  private val validationClasspath: Collection<File>,
   private val bootClasspath: Collection<File>,
   private val projectName: String,
   private val validateClasspath: Boolean,
@@ -43,7 +44,7 @@ class ParanoidProcessor(
 
   private val logger = getLogger()
 
-  private val grip: Grip = GripFactory.newInstance(asmApi).create(inputs + classpath + bootClasspath)
+  private val grip: Grip = GripFactory.newInstance(asmApi).create(inputs + classpath + bootClasspath + validationClasspath)
   private val stringRegistry = StringRegistryImpl(obfuscationSeed)
   private val validator: Validator = Validator(grip, asmApi)
 
@@ -55,7 +56,7 @@ class ParanoidProcessor(
     }
 
     if (validateClasspath) {
-      validator.validate(classpath)
+      validator.validate(validationClasspath)
     }
 
     val analysisResult = Analyzer(grip).analyze(inputs)

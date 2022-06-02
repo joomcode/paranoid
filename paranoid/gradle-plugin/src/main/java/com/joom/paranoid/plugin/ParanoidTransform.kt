@@ -63,6 +63,7 @@ class ParanoidTransform(
       classpath = invocation.referencedInputs.flatMap { input ->
         input.jarInputs.map { it.file } + input.directoryInputs.map { it.file }
       },
+      validationClasspath = emptyList(),
       bootClasspath = paranoid.bootClasspath,
       projectName = invocation.context.path.replace(":transformClassesWithParanoidFor", ":").replace(':', '$'),
       validateClasspath = false,
@@ -144,12 +145,6 @@ class ParanoidTransform(
     format: Format
   ): File {
     return getContentLocation(name, setOf(contentType), EnumSet.of(scope), format)
-  }
-
-  private fun copyInputsToOutputs(inputs: List<File>, outputs: List<File>) {
-    inputs.zip(outputs) { input, output ->
-      input.copyRecursively(output, overwrite = true)
-    }
   }
 
   private fun calculateObfuscationSeed(inputs: List<QualifiedContent>): Int {
