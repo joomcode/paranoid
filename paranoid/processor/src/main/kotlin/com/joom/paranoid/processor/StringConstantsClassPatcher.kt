@@ -18,6 +18,7 @@ package com.joom.paranoid.processor
 
 import com.joom.grip.mirrors.toAsmType
 import com.joom.paranoid.processor.logging.getLogger
+import com.joom.paranoid.processor.watermark.WatermarkClassVisitor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.MethodVisitor
@@ -31,7 +32,7 @@ class StringConstantsClassPatcher(
   private val configuration: ClassConfiguration,
   asmApi: Int,
   delegate: ClassVisitor,
-) : ClassVisitor(asmApi, delegate) {
+) : WatermarkClassVisitor(asmApi, delegate) {
 
   private val logger = getLogger()
 

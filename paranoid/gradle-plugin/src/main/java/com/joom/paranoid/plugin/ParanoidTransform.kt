@@ -63,8 +63,10 @@ class ParanoidTransform(
       classpath = invocation.referencedInputs.flatMap { input ->
         input.jarInputs.map { it.file } + input.directoryInputs.map { it.file }
       },
+      validationClasspath = emptyList(),
       bootClasspath = paranoid.bootClasspath,
-      projectName = invocation.context.path.replace(":transformClassesWithParanoidFor", ":").replace(':', '$')
+      projectName = invocation.context.path.replace(":transformClassesWithParanoidFor", ":").replace(':', '$'),
+      validateClasspath = false,
     )
 
     try {
@@ -110,11 +112,8 @@ class ParanoidTransform(
     return paranoid.isCacheable
   }
 
+  @Suppress("UnstableApiUsage")
   override fun applyToVariant(variant: VariantInfo): Boolean {
-    if (!paranoid.isEnabled) {
-      return false
-    }
-
     if (variant.isTest) {
       return false
     }
@@ -129,7 +128,6 @@ class ParanoidTransform(
   override fun getParameterInputs(): MutableMap<String, Any?> {
     return mutableMapOf(
       "version" to Build.VERSION,
-      "enabled" to paranoid.isEnabled,
       "includeSubprojects" to paranoid.includeSubprojects,
       "obfuscationSeed" to paranoid.obfuscationSeed,
       "applyToBuildTypes" to paranoid.applyToBuildTypes
@@ -145,18 +143,12 @@ class ParanoidTransform(
     return getContentLocation(name, setOf(contentType), EnumSet.of(scope), format)
   }
 
-  private fun copyInputsToOutputs(inputs: List<File>, outputs: List<File>) {
-    inputs.zip(outputs) { input, output ->
-      input.copyRecursively(output, overwrite = true)
-    }
-  }
-
   private fun calculateObfuscationSeed(inputs: List<QualifiedContent>): Int {
     val manuallySetObfuscationSeed = paranoid.obfuscationSeed
     return when {
       manuallySetObfuscationSeed != null -> manuallySetObfuscationSeed
       !paranoid.isCacheable -> SecureRandom().nextInt()
-      else -> ObfuscationSeedCalculator.calculate(inputs)
+      else -> ObfuscationSeedCalculator.calculate(inputs) { it.file }
     }
   }
 }

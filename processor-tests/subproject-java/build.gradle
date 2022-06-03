@@ -1,4 +1,5 @@
 apply plugin: 'java-library'
+apply plugin: 'com.joom.paranoid'
 
 sourceCompatibility = javaVersion
 targetCompatibility = javaVersion

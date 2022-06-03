@@ -16,13 +16,14 @@
 
 package com.joom.paranoid.processor
 
+import com.joom.paranoid.processor.watermark.WatermarkClassVisitor
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
 
 class RemoveObfuscateClassPatcher(
   asmApi: Int,
   delegate: ClassVisitor,
-) : ClassVisitor(asmApi, delegate) {
+) : WatermarkClassVisitor(asmApi, delegate) {
 
   private val obfuscateDescriptor = OBFUSCATE_TYPE.descriptor
 

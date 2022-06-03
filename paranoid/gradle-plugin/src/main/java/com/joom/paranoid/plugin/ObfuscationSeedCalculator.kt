@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-@file:Suppress("DEPRECATION")
 package com.joom.paranoid.plugin
 
-import com.android.build.api.transform.QualifiedContent
 import java.io.File
 
 object ObfuscationSeedCalculator {
 
-  fun calculate(inputs: List<QualifiedContent>): Int {
-    return inputs.maxLastModified { getLastModified(it.file) }.hashCode()
+  fun <T : Any> calculate(inputs: List<T>, fileSelector: (T) -> File): Int {
+    return inputs.maxLastModified { getLastModified(fileSelector(it)) }.hashCode()
   }
 
   private fun getLastModified(file: File): Long {
