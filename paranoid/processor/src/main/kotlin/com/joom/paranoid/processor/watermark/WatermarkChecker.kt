@@ -16,11 +16,11 @@
 
 package com.joom.paranoid.processor.watermark
 
-import java.io.File
-import java.io.IOException
 import org.objectweb.asm.Attribute
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
+import java.io.File
+import java.io.IOException
 
 class WatermarkChecker(asmApi: Int) : ClassVisitor(asmApi) {
   var isParanoidClass: Boolean = false

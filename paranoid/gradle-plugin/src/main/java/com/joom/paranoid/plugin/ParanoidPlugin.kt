@@ -19,14 +19,14 @@ package com.joom.paranoid.plugin
 import com.android.build.api.AndroidPluginVersion
 import com.android.build.api.artifact.MultipleArtifact
 import com.android.build.api.variant.Variant
-import com.android.build.gradle.internal.scope.getDirectories
+import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.jvm.tasks.Jar
+import java.io.File
 
 class ParanoidPlugin : Plugin<Project> {
   private lateinit var project: Project
@@ -63,29 +63,36 @@ class ParanoidPlugin : Plugin<Project> {
     }
 
     val mainSourceSet = project.sourceSets.main
+    val classesTask = project.tasks.named(mainSourceSet.classesTaskName)
     val compileTask = project.getTaskByName<JavaCompile>(mainSourceSet.compileJavaTaskName)
-    val taskProvider = project.registerTask<ParanoidTransformTask>(formatParanoidTaskName(project.name))
-    val input = mainSourceSet.output.classesDirs.getDirectories(project.layout.projectDirectory)
+    val paranoidTask = project.registerTask<ParanoidTransformTask>(formatParanoidTaskName(project.name))
+    val backupClassesTask = project.registerTask<BackupClassesTask>(formatBackupClassesTaskName(project.name))
+    val input = mainSourceSet.output.classesDirs.files
     val output = project.layout.buildDirectory.dir("intermediates/paranoid/classes")
+    val backupDirs = computeBackupDirs(project.buildDir, output.get().asFile, input)
     val runtimeClasspath = project.configurations.named(mainSourceSet.runtimeClasspathConfigurationName)
-    taskProvider.configure { task ->
+
+    backupClassesTask.configure { task ->
+      task.classesDirs = input.toList()
+      task.backupDirs = backupDirs.toList()
+    }
+
+    paranoidTask.configure { task ->
       val javaCompileTask = compileTask.get()
       task.obfuscationSeed = extension.obfuscationSeed
       task.bootClasspath.setFrom(javaCompileTask.options.bootstrapClasspath?.files.orEmpty())
       task.classpath.setFrom(javaCompileTask.classpath)
       task.validationClasspath.setFrom(runtimeClasspath.map { it.incomingJarArtifacts { it is ProjectComponentIdentifier }.artifactFiles })
-      task.inputClasses.set(input)
-      task.output.set(output)
+      task.inputClasses.set(backupDirs.map { file -> project.layout.dir(project.provider { file }).get() })
+      task.outputDirectories.set(input)
+
+      task.mustRunAfter(compileTask)
+      task.dependsOn(compileTask)
     }
 
-    project.getTaskByName<Jar>(JavaPlugin.JAR_TASK_NAME).configure { jar ->
-      val inputDirectories = lazy { input.get().map { it.asFile } }
-      jar.dependsOn(taskProvider)
-      jar.from(output)
-      jar.exclude { element ->
-        inputDirectories.value.any { element.file.startsWith(it) }
-      }
-    }
+    backupClassesTask.dependsOn(compileTask)
+    paranoidTask.dependsOn(backupClassesTask)
+    classesTask.dependsOn(paranoidTask)
   }
 
   private fun registerParanoidWithVariantApi(extension: ParanoidExtension) {
@@ -146,6 +153,18 @@ class ParanoidPlugin : Plugin<Project> {
 
   private fun formatParanoidTaskName(variantName: String): String {
     return "${ParanoidTransformTask.TASK_PREFIX}${variantName.replaceFirstChar { it.uppercase() }}"
+  }
+
+  private fun formatBackupClassesTaskName(variantName: String): String {
+    return "paranoidBackupClassesTask${variantName.replaceFirstChar { it.uppercase() }}"
+  }
+
+  private fun computeBackupDirs(buildDir: File, paranoidDir: File, classesDirs: Collection<File>): Collection<File> {
+    return classesDirs.map { classesDir ->
+      val relativeFile = classesDir.relativeToOrSelf(buildDir)
+
+      File(paranoidDir, relativeFile.path)
+    }
   }
 
   @Suppress("DEPRECATION")
