@@ -67,6 +67,8 @@ abstract class ParanoidTransformTask : DefaultTask() {
   @Input
   var validateClasspath: Boolean = false
 
+  private val projectName = computeProjectName()
+
   init {
     logging.captureStandardOutput(LogLevel.INFO)
   }
@@ -99,7 +101,7 @@ abstract class ParanoidTransformTask : DefaultTask() {
         bootClasspath = bootClasspath.files,
         validationClasspath = validationClasspath.files,
         validateClasspath = validateClasspath,
-        projectName = (project.path + name.replace(TASK_PREFIX, ":")).replace(':', '$'),
+        projectName = projectName,
       )
 
       processor.process()
