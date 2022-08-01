@@ -1,6 +1,6 @@
 def isDevelopment = properties['development'].toBoolean()
-includeBuild('paranoid') {
-  if (isDevelopment) {
+if (isDevelopment) {
+  includeBuild('paranoid') {
     dependencySubstitution {
       substitute module('com.joom.paranoid:paranoid-gradle-plugin') using project(':gradle-plugin')
       substitute module('com.joom.paranoid:paranoid-processor') using project(':processor')

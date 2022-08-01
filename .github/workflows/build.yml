@@ -34,7 +34,7 @@ jobs:
         run: ./gradlew -p paranoid publishToMavenLocal -Ppablo.shadow.enabled=true ${{ env.PABLO_OPTS }}
 
       - name: Run unit tests
-        run: ./gradlew check -x lint -Pdevelopment=false
+        run: ./gradlew check -x lint -Pdevelopment=false -Dorg.gradle.unsafe.configuration-cache=true
 
   test:
     name: Test
@@ -67,7 +67,7 @@ jobs:
           api-level: ${{ matrix.api-level }}
           target: ${{ matrix.target }}
           arch: ${{ matrix.arch }}
-          script: ./gradlew connectedCheck -Pdevelopment=false
+          script: ./gradlew connectedCheck -Pdevelopment=false -Dorg.gradle.unsafe.configuration-cache=true
 
   publish:
     name: Publish

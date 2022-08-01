@@ -29,8 +29,10 @@ import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import java.io.File
 
 @CacheableTask
 abstract class ParanoidTransformTask : DefaultTask() {
@@ -51,7 +53,12 @@ abstract class ParanoidTransformTask : DefaultTask() {
   abstract val bootClasspath: ConfigurableFileCollection
 
   @get:OutputDirectory
+  @get:Optional
   abstract val output: DirectoryProperty
+
+  @get:OutputDirectories
+  @get:Optional
+  abstract val outputDirectories: ListProperty<File>
 
   @Input
   @Optional
@@ -59,6 +66,8 @@ abstract class ParanoidTransformTask : DefaultTask() {
 
   @Input
   var validateClasspath: Boolean = false
+
+  private val projectName = computeProjectName()
 
   init {
     logging.captureStandardOutput(LogLevel.INFO)
@@ -71,16 +80,28 @@ abstract class ParanoidTransformTask : DefaultTask() {
 
       cleanOutput()
 
+      val outputs = when {
+        output.isPresent -> List(inputClasses.get().size) { output.get().asFile }
+        outputDirectories.isPresent -> outputDirectories.get()
+        else -> error("output or outputDirectories is not set")
+      }
+
+      val genPath = when {
+        output.isPresent -> output.get().asFile
+        outputDirectories.isPresent -> outputDirectories.get().first()
+        else -> error("output or outputDirectories is not set")
+      }
+
       val processor = ParanoidProcessor(
         obfuscationSeed = calculateObfuscationSeed(),
         inputs = inputClasses.get().map { it.asFile },
-        outputs = List(inputClasses.get().size) { output.get().asFile },
-        genPath = output.get().asFile,
+        outputs = outputs,
+        genPath = genPath,
         classpath = classpath.files,
         bootClasspath = bootClasspath.files,
         validationClasspath = validationClasspath.files,
         validateClasspath = validateClasspath,
-        projectName = (project.path + name.replace(TASK_PREFIX, ":")).replace(':', '$'),
+        projectName = projectName,
       )
 
       processor.process()
@@ -90,7 +111,13 @@ abstract class ParanoidTransformTask : DefaultTask() {
   }
 
   private fun cleanOutput() {
-    output.get().asFile.deleteRecursively()
+    if (output.isPresent) {
+      output.get().asFile.deleteRecursively()
+    }
+
+    if (outputDirectories.isPresent) {
+      outputDirectories.get().forEach { it.deleteRecursively() }
+    }
   }
 
   private fun calculateObfuscationSeed(): Int {
@@ -103,7 +130,11 @@ abstract class ParanoidTransformTask : DefaultTask() {
 
   private fun validate() {
     require(inputClasses.get().isNotEmpty()) { "inputClasses is not set" }
-    require(output.isPresent) { "output is not set" }
+    require(output.isPresent || outputDirectories.isPresent) { "output is not set" }
+  }
+
+  private fun computeProjectName(): String {
+    return (project.path + name.replace(TASK_PREFIX, ":")).replace(':', '$')
   }
 
   companion object {
