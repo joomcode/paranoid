@@ -1,5 +1,5 @@
 ext.PARANOID_GROUP = 'com.joom.paranoid'
-ext.PARANOID_VERSION = '0.3.12'
+ext.PARANOID_VERSION = '0.3.13'
 
 ext {
   javaVersion = JavaVersion.VERSION_1_8
