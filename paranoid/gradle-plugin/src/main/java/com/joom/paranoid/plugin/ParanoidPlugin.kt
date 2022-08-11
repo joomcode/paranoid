@@ -58,10 +58,6 @@ class ParanoidPlugin : Plugin<Project> {
   }
 
   private fun registerParanoidForJava(extension: ParanoidExtension) {
-    if (extension.applyToBuildTypes == BuildType.NONE) {
-      return
-    }
-
     val mainSourceSet = project.sourceSets.main
     val classesTask = project.tasks.named(mainSourceSet.classesTaskName)
     val compileTask = project.getTaskByName<JavaCompile>(mainSourceSet.compileJavaTaskName)
@@ -85,9 +81,14 @@ class ParanoidPlugin : Plugin<Project> {
       task.validationClasspath.setFrom(runtimeClasspath.map { it.incomingJarArtifacts { it is ProjectComponentIdentifier }.artifactFiles })
       task.inputClasses.set(backupDirs.map { file -> project.layout.dir(project.provider { file }).get() })
       task.outputDirectories.set(input)
+      task.onlyIf { extension.applyToBuildTypes != BuildType.NONE }
 
       task.mustRunAfter(compileTask)
       task.dependsOn(compileTask)
+    }
+
+    backupClassesTask.configure { task ->
+      task.onlyIf { extension.applyToBuildTypes != BuildType.NONE }
     }
 
     backupClassesTask.dependsOn(compileTask)
@@ -96,28 +97,28 @@ class ParanoidPlugin : Plugin<Project> {
   }
 
   private fun registerParanoidWithVariantApi(extension: ParanoidExtension) {
-    if (extension.applyToBuildTypes == BuildType.NONE) {
-      return
-    }
-
     project.applicationAndroidComponents?.apply {
       onVariants { variant ->
-        if (extension.applyToBuildTypes == BuildType.NOT_DEBUGGABLE && variant.isDebuggable()) {
-          return@onVariants
+        if (extension.applyToBuildTypes.isVariantFit(variant)) {
+          variant.registerParanoidTransformTask(extension, validateClasspath = true)
         }
-
-        variant.registerParanoidTransformTask(extension, validateClasspath = true)
       }
     }
 
     project.libraryAndroidComponents?.apply {
       onVariants { variant ->
-        if (extension.applyToBuildTypes == BuildType.NOT_DEBUGGABLE && variant.isDebuggable()) {
-          return@onVariants
+        if (extension.applyToBuildTypes.isVariantFit(variant)) {
+          variant.registerParanoidTransformTask(extension, validateClasspath = false)
         }
-
-        variant.registerParanoidTransformTask(extension, validateClasspath = false)
       }
+    }
+  }
+
+  private fun BuildType.isVariantFit(variant: Variant): Boolean {
+    return when (this) {
+      BuildType.NONE -> false
+      BuildType.ALL -> true
+      BuildType.NOT_DEBUGGABLE -> !variant.isDebuggable()
     }
   }
 
