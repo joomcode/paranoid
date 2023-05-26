@@ -17,13 +17,14 @@
 package com.joom.paranoid.plugin
 
 import com.android.build.api.AndroidPluginVersion
-import com.android.build.api.artifact.MultipleArtifact
+import com.android.build.api.artifact.Artifact
 import com.android.build.api.variant.Variant
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.file.Directory
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.compile.JavaCompile
 import java.io.File
@@ -131,10 +132,10 @@ class ParanoidPlugin : Plugin<Project> {
     validateClasspath: Boolean,
   ) {
     val taskProvider = project.registerTask<ParanoidTransformTask>(formatParanoidTaskName(name))
-    @Suppress("UnstableApiUsage")
+
     artifacts.use(taskProvider)
       .wiredWith(ParanoidTransformTask::inputClasses, ParanoidTransformTask::output)
-      .toTransform(MultipleArtifact.ALL_CLASSES_DIRS)
+      .toTransform(ArtifactAllClasses)
 
     val runtimeClasspath = project.configurations.getByName("${name}RuntimeClasspath")
 
@@ -185,6 +186,11 @@ class ParanoidPlugin : Plugin<Project> {
   private fun Project.addDependencies(configurationName: String) {
     dependencies.add(configurationName, "com.joom.paranoid:paranoid-core:${Build.VERSION}")
   }
+
+  private object ArtifactAllClasses : Artifact.Multiple<Directory>(
+    kind = DIRECTORY,
+    category = Category.INTERMEDIATES
+  ), Artifact.Transformable
 
   private companion object {
     private val VARIANT_API_REQUIRED_VERSION = AndroidPluginVersion(major = 7, minor = 2, micro = 0)
