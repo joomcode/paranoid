@@ -4,6 +4,12 @@ apply from: "$rootDir/pablo.gradle"
 sourceCompatibility = javaVersion
 targetCompatibility = javaVersion
 
+compileKotlin {
+  kotlinOptions {
+    jvmTarget = javaVersion
+  }
+}
+
 dependencies {
   implementation project(':core')
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"

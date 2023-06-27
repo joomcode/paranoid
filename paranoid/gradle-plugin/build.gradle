@@ -5,6 +5,12 @@ apply from: "$rootDir/pablo.gradle"
 targetCompatibility = javaVersion
 sourceCompatibility = javaVersion
 
+compileKotlin {
+  kotlinOptions {
+    jvmTarget = javaVersion
+  }
+}
+
 dependencies {
   compileOnly gradleApi()
   compileOnly "com.android.tools.build:gradle:$androidToolsVersion"
@@ -40,8 +46,9 @@ sourceSets {
   }
 }
 
-tasks.matching { it instanceof AbstractCompile }.forEach {
-  it.dependsOn tasks.generateBuildClass
+tasks.getByPath(JavaPlugin.COMPILE_JAVA_TASK_NAME).dependsOn(tasks.generateBuildClass)
+tasks.named('compileKotlin', org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask.class) {
+  it.dependsOn(tasks.generateBuildClass)
 }
 
 clean.doFirst {

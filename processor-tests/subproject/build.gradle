@@ -6,6 +6,19 @@ android {
   compileSdkVersion androidCompileSdkVersion
   buildToolsVersion androidBuildToolsVersion
 
+  buildFeatures {
+    buildConfig = true
+  }
+
+  compileOptions {
+    targetCompatibility = javaVersion
+    sourceCompatibility = javaVersion
+
+    kotlinOptions {
+      jvmTarget = javaVersion
+    }
+  }
+
   defaultConfig {
     applicationId "com.joom.paranoid.processor.subproject"
     namespace "com.joom.paranoid.processor.subproject"
