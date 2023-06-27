@@ -35,7 +35,7 @@ class MainActivityTest {
     val suffix = if (BuildConfig.DEBUG) "Debug" else "Release"
     val className = "com.joom.paranoid.Deobfuscator\$processortests\$subproject$$suffix"
 
-    verifyDeobfuscatorGenerated(className = className, expectedString = "Subprojects: ")
+    verifyDeobfuscatorGenerated(className = className, expectedString = "Subprojects:")
   }
 
   @Test

@@ -17,15 +17,17 @@
 package com.joom.paranoid.plugin
 
 import com.android.build.api.AndroidPluginVersion
-import com.android.build.api.artifact.Artifact
+import com.android.build.api.artifact.MultipleArtifact
+import com.android.build.api.artifact.ScopedArtifact
+import com.android.build.api.variant.ScopedArtifacts
 import com.android.build.api.variant.Variant
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
-import org.gradle.api.file.Directory
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import java.io.File
 
@@ -46,16 +48,12 @@ class ParanoidPlugin : Plugin<Project> {
       throw GradleException("Paranoid plugin must be applied *AFTER* Android plugin")
     }
 
-    val androidComponentsExtension = project.androidComponents
-    if (androidComponentsExtension != null && androidComponentsExtension.pluginVersion >= VARIANT_API_REQUIRED_VERSION) {
-      project.logger.info("Registering paranoid with variant API")
-
-      registerParanoidWithVariantApi(extension)
-    } else {
-      project.logger.info("Registering paranoid with transform API")
-
-      registerParanoidWithTransform(extension)
+    val androidComponentsExtension = project.androidComponents ?: throw GradleException("Failed to get androidComponents extension")
+    if (androidComponentsExtension.pluginVersion < MINIMUM_VERSION) {
+      throw GradleException("Paranoid requires Android Gradle Plugin version $MINIMUM_VERSION")
     }
+
+    registerParanoid(extension)
   }
 
   private fun registerParanoidForJava(extension: ParanoidExtension) {
@@ -80,8 +78,8 @@ class ParanoidPlugin : Plugin<Project> {
       task.bootClasspath.setFrom(javaCompileTask.options.bootstrapClasspath?.files.orEmpty())
       task.classpath.setFrom(javaCompileTask.classpath)
       task.validationClasspath.setFrom(runtimeClasspath.map { it.incomingJarArtifacts { it is ProjectComponentIdentifier }.artifactFiles })
-      task.inputClasses.set(backupDirs.map { file -> project.layout.dir(project.provider { file }).get() })
-      task.outputDirectories.set(input)
+      task.inputDirectories.set(backupDirs.map { file -> project.layout.dir(project.provider { file }).get() })
+      task.outputDirectory.set(input.single())
       task.onlyIf { extension.applyToBuildTypes != BuildType.NONE }
 
       task.mustRunAfter(compileTask)
@@ -97,11 +95,11 @@ class ParanoidPlugin : Plugin<Project> {
     classesTask.dependsOn(paranoidTask)
   }
 
-  private fun registerParanoidWithVariantApi(extension: ParanoidExtension) {
+  private fun registerParanoid(extension: ParanoidExtension) {
     project.applicationAndroidComponents?.apply {
       onVariants(selector().all()) { variant ->
         if (extension.applyToBuildTypes.isVariantFit(variant)) {
-          variant.registerParanoidTransformTask(extension, validateClasspath = true)
+          variant.createParanoidTransformTask(extension, validateClasspath = true)
         }
       }
     }
@@ -109,7 +107,7 @@ class ParanoidPlugin : Plugin<Project> {
     project.libraryAndroidComponents?.apply {
       onVariants(selector().all()) { variant ->
         if (extension.applyToBuildTypes.isVariantFit(variant)) {
-          variant.registerParanoidTransformTask(extension, validateClasspath = false)
+          variant.createParanoidTransformTask(extension, validateClasspath = false)
         }
       }
     }
@@ -127,18 +125,20 @@ class ParanoidPlugin : Plugin<Project> {
     return buildType?.let { project.android.buildTypes.getByName(it) }?.isDebuggable ?: false
   }
 
-  private fun Variant.registerParanoidTransformTask(
+  private fun Variant.createParanoidTransformTask(
     extension: ParanoidExtension,
     validateClasspath: Boolean,
   ) {
     val taskProvider = project.registerTask<ParanoidTransformTask>(formatParanoidTaskName(name))
+    val androidComponentsExtension = project.androidComponents ?: error("Failed to get androidComponents extension")
 
-    artifacts.use(taskProvider)
-      .wiredWith(ParanoidTransformTask::inputClasses, ParanoidTransformTask::output)
-      .toTransform(ArtifactAllClasses)
+    if (androidComponentsExtension.pluginVersion >= SCOPED_ARTIFACTS_VERSION) {
+      registerTransformTaskWithScopedArtifacts(taskProvider)
+    } else {
+      registerTransformTaskWithAllClassesTransform(taskProvider)
+    }
 
     val runtimeClasspath = project.configurations.getByName("${name}RuntimeClasspath")
-
     taskProvider.configure { task ->
       task.obfuscationSeed = extension.obfuscationSeed
       task.validateClasspath = validateClasspath
@@ -151,6 +151,19 @@ class ParanoidPlugin : Plugin<Project> {
 
       task.bootClasspath.setFrom(project.android.bootClasspath)
     }
+  }
+
+  private fun Variant.registerTransformTaskWithAllClassesTransform(provider: TaskProvider<ParanoidTransformTask>) {
+    @Suppress("DEPRECATION")
+    artifacts.use(provider)
+      .wiredWith(ParanoidTransformTask::inputDirectories, ParanoidTransformTask::outputDirectory)
+      .toTransform(MultipleArtifact.ALL_CLASSES_DIRS)
+  }
+
+  private fun Variant.registerTransformTaskWithScopedArtifacts(provider: TaskProvider<ParanoidTransformTask>) {
+    artifacts.forScope(ScopedArtifacts.Scope.PROJECT)
+      .use(provider)
+      .toTransform(ScopedArtifact.CLASSES, ParanoidTransformTask::inputClasses, ParanoidTransformTask::inputDirectories, ParanoidTransformTask::output)
   }
 
   private fun formatParanoidTaskName(variantName: String): String {
@@ -169,16 +182,6 @@ class ParanoidPlugin : Plugin<Project> {
     }
   }
 
-  @Suppress("DEPRECATION")
-  private fun registerParanoidWithTransform(extension: ParanoidExtension) {
-    val transform = ParanoidTransform(extension)
-    project.android.registerTransform(transform)
-
-    project.afterEvaluate {
-      extension.bootClasspath = project.android.bootClasspath
-    }
-  }
-
   private fun getDefaultConfiguration(): String {
     return JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME
   }
@@ -187,12 +190,8 @@ class ParanoidPlugin : Plugin<Project> {
     dependencies.add(configurationName, "com.joom.paranoid:paranoid-core:${Build.VERSION}")
   }
 
-  private object ArtifactAllClasses : Artifact.Multiple<Directory>(
-    kind = DIRECTORY,
-    category = Category.INTERMEDIATES
-  ), Artifact.Transformable
-
   private companion object {
-    private val VARIANT_API_REQUIRED_VERSION = AndroidPluginVersion(major = 7, minor = 2, micro = 0)
+    private val SCOPED_ARTIFACTS_VERSION = AndroidPluginVersion(major = 7, minor = 4, micro = 0)
+    private val MINIMUM_VERSION = AndroidPluginVersion(major = 7, minor = 2, micro = 0)
   }
 }

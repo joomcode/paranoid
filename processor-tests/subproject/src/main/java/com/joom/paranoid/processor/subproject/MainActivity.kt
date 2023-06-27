@@ -32,6 +32,10 @@ class MainActivity : Activity() {
     super.onCreate(savedInstanceState)
     val textView = TextView(this)
     setContentView(textView)
-    textView.text = "Subprojects: ${AndroidConstants.getName()}, ${JavaConstants.getName()}"
+    textView.text = "$TEXT ${AndroidConstants.getName()}, ${JavaConstants.getName()}"
+  }
+
+  private companion object {
+    private const val TEXT = "Subprojects:"
   }
 }

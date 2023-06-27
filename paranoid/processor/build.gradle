@@ -10,6 +10,16 @@ compileKotlin {
   }
 }
 
+compileTestKotlin {
+  kotlinOptions {
+    jvmTarget = javaVersion
+  }
+}
+
+test {
+  testLogging.showStandardStreams = true
+}
+
 dependencies {
   implementation project(':core')
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
