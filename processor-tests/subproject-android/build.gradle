@@ -6,6 +6,7 @@ android {
   buildToolsVersion androidBuildToolsVersion
 
   defaultConfig {
+    namespace "com.joom.paranoid.processor.subproject.android"
     minSdkVersion androidMinSdkVersion
     targetSdkVersion androidTargetSdkVersion
     versionCode 1
