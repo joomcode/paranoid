@@ -66,6 +66,7 @@ class MainActivityTest {
     val chunksField = deobfuscatorClass.getDeclaredField("chunks")
 
     chunksField.isAccessible = true
+    @Suppress("UNCHECKED_CAST")
     val chunks = chunksField[null] as Array<String>
 
     Assert.assertNotNull(chunks)
