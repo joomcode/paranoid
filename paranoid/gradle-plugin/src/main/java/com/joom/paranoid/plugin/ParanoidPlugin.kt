@@ -21,7 +21,6 @@ import com.android.build.api.artifact.MultipleArtifact
 import com.android.build.api.artifact.ScopedArtifact
 import com.android.build.api.variant.ScopedArtifacts
 import com.android.build.api.variant.Variant
-import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -90,9 +89,9 @@ class ParanoidPlugin : Plugin<Project> {
       task.onlyIf { extension.applyToBuildTypes != BuildType.NONE }
     }
 
-    backupClassesTask.dependsOn(compileTask)
-    paranoidTask.dependsOn(backupClassesTask)
-    classesTask.dependsOn(paranoidTask)
+    backupClassesTask.configure { it.dependsOn(compileTask) }
+    paranoidTask.configure { it.dependsOn(backupClassesTask) }
+    classesTask.configure { it.dependsOn(paranoidTask) }
   }
 
   private fun registerParanoid(extension: ParanoidExtension) {
