@@ -33,6 +33,9 @@ jobs:
       - name: Publish bootstrap artifacts
         run: ./gradlew -p paranoid publishToMavenLocal -Ppablo.shadow.enabled=true ${{ env.PABLO_OPTS }}
 
+      - name: Run functional test
+        run: ./gradlew -p paranoid -Ppablo.shadow.enabled=true functionalTest
+
       - name: Run unit tests
         run: ./gradlew check -x lint -Pdevelopment=false -Dorg.gradle.unsafe.configuration-cache=true
 
