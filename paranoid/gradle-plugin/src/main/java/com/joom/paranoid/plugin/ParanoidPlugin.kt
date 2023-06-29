@@ -17,16 +17,12 @@
 package com.joom.paranoid.plugin
 
 import com.android.build.api.AndroidPluginVersion
-import com.android.build.api.artifact.MultipleArtifact
-import com.android.build.api.artifact.ScopedArtifact
-import com.android.build.api.variant.ScopedArtifacts
 import com.android.build.api.variant.Variant
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import java.io.File
 
@@ -132,9 +128,9 @@ class ParanoidPlugin : Plugin<Project> {
     val androidComponentsExtension = project.androidComponents ?: error("Failed to get androidComponents extension")
 
     if (androidComponentsExtension.pluginVersion >= SCOPED_ARTIFACTS_VERSION) {
-      registerTransformTaskWithScopedArtifacts(taskProvider)
+      ScopedArtifactsRegisterAction.register(this, taskProvider)
     } else {
-      registerTransformTaskWithAllClassesTransform(taskProvider)
+      AllClassesTransformRegisterAction.register(this, taskProvider)
     }
 
     val runtimeClasspath = project.configurations.getByName("${name}RuntimeClasspath")
@@ -150,19 +146,6 @@ class ParanoidPlugin : Plugin<Project> {
 
       task.bootClasspath.setFrom(project.android.bootClasspath)
     }
-  }
-
-  private fun Variant.registerTransformTaskWithAllClassesTransform(provider: TaskProvider<ParanoidTransformTask>) {
-    @Suppress("DEPRECATION")
-    artifacts.use(provider)
-      .wiredWith(ParanoidTransformTask::inputDirectories, ParanoidTransformTask::outputDirectory)
-      .toTransform(MultipleArtifact.ALL_CLASSES_DIRS)
-  }
-
-  private fun Variant.registerTransformTaskWithScopedArtifacts(provider: TaskProvider<ParanoidTransformTask>) {
-    artifacts.forScope(ScopedArtifacts.Scope.PROJECT)
-      .use(provider)
-      .toTransform(ScopedArtifact.CLASSES, ParanoidTransformTask::inputClasses, ParanoidTransformTask::inputDirectories, ParanoidTransformTask::output)
   }
 
   private fun formatParanoidTaskName(variantName: String): String {
