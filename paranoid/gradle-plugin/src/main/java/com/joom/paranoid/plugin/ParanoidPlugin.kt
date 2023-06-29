@@ -49,7 +49,7 @@ class ParanoidPlugin : Plugin<Project> {
 
     val androidComponentsExtension = project.androidComponents ?: throw GradleException("Failed to get androidComponents extension")
     if (androidComponentsExtension.pluginVersion < MINIMUM_VERSION) {
-      throw GradleException("Paranoid requires Android Gradle Plugin version $MINIMUM_VERSION")
+      throw GradleException("Paranoid requires Android Gradle Plugin version ${MINIMUM_VERSION.major}.${MINIMUM_VERSION.minor}.${MINIMUM_VERSION.micro}")
     }
 
     registerParanoid(extension)
