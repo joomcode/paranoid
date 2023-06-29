@@ -39,4 +39,8 @@ pablo {
       url = 'https://github.com/joomcode/paranoid'
     }
   }
+
+  signing {
+    enabled.set(providers.gradleProperty("development").map { !it.toBoolean() })
+  }
 }
