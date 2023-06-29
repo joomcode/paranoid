@@ -98,7 +98,7 @@ class ParanoidPlugin : Plugin<Project> {
 
   private fun registerParanoidWithVariantApi(extension: ParanoidExtension) {
     project.applicationAndroidComponents?.apply {
-      onVariants { variant ->
+      onVariants(selector().all()) { variant ->
         if (extension.applyToBuildTypes.isVariantFit(variant)) {
           variant.registerParanoidTransformTask(extension, validateClasspath = true)
         }
@@ -106,7 +106,7 @@ class ParanoidPlugin : Plugin<Project> {
     }
 
     project.libraryAndroidComponents?.apply {
-      onVariants { variant ->
+      onVariants(selector().all()) { variant ->
         if (extension.applyToBuildTypes.isVariantFit(variant)) {
           variant.registerParanoidTransformTask(extension, validateClasspath = false)
         }
