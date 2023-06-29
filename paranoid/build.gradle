@@ -1,26 +1,49 @@
 buildscript {
   apply from: '../versions.gradle'
-}
 
-allprojects {
-  group = PARANOID_GROUP
-  version = PARANOID_VERSION
+  allprojects {
+    group = PARANOID_GROUP
+    version = PARANOID_VERSION
 
-  buildscript {
+    buildscript {
+      repositories {
+        google()
+        mavenCentral()
+      }
+
+      dependencies {
+        classpath "com.android.tools.build:gradle:$androidToolsVersion"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "io.michaelrocks.pablo:pablo:$pabloVersion"
+      }
+    }
+
     repositories {
       google()
       mavenCentral()
     }
-
-    dependencies {
-      classpath "com.android.tools.build:gradle:$androidToolsVersion"
-      classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-      classpath "io.michaelrocks.pablo:pablo:$pabloVersion"
-    }
   }
+}
 
-  repositories {
-    google()
-    mavenCentral()
+apply plugin: 'kotlin'
+
+dependencies {
+  testImplementation gradleTestKit()
+  testImplementation "junit:junit:$junitVersion"
+}
+
+tasks.register("functionalTest", Test.class) {
+  description = "Runs the functional tests."
+  group = "verification"
+
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
+}
+
+afterEvaluate {
+  tasks.named("functionalTest") {
+    subprojects.each {
+      dependsOn(it.tasks.named("publishToMavenLocal"))
+    }
   }
 }
