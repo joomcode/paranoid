@@ -31,7 +31,7 @@ jobs:
           java-version: '11'
 
       - name: Publish bootstrap artifacts
-        run: ./gradlew -p paranoid publishToMavenLocal -Ppablo.shadow.enabled=true ${{ env.PABLO_OPTS }}
+        run: ./gradlew -p paranoid publishToMavenLocal -Pdevelopment=false -Ppablo.shadow.enabled=true ${{ env.PABLO_OPTS }}
 
       - name: Run functional test
         run: ./gradlew -p paranoid -Ppablo.shadow.enabled=true functionalTest
@@ -68,7 +68,7 @@ jobs:
           java-version: '11'
 
       - name: Publish bootstrap artifacts
-        run: ./gradlew -p paranoid publishToMavenLocal -Ppablo.shadow.enabled=true ${{ env.PABLO_OPTS }}
+        run: ./gradlew -p paranoid publishToMavenLocal -Pdevelopment=false -Ppablo.shadow.enabled=true ${{ env.PABLO_OPTS }}
 
       - name: Run integration tests
         uses: reactivecircus/android-emulator-runner@v2
@@ -97,4 +97,4 @@ jobs:
           java-version: '11'
 
       - name: Upload Artifacts
-        run: ./gradlew -p paranoid publishMavenPublicationToSonatypeRepository -Ppablo.shadow.enabled=true ${{ env.PABLO_OPTS }}
+        run: ./gradlew -p paranoid publishMavenPublicationToSonatypeRepository -Pdevelopment=false -Ppablo.shadow.enabled=true ${{ env.PABLO_OPTS }}
