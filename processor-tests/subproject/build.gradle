@@ -6,8 +6,22 @@ android {
   compileSdkVersion androidCompileSdkVersion
   buildToolsVersion androidBuildToolsVersion
 
+  buildFeatures {
+    buildConfig = true
+  }
+
+  compileOptions {
+    targetCompatibility = javaVersion
+    sourceCompatibility = javaVersion
+
+    kotlinOptions {
+      jvmTarget = javaVersion
+    }
+  }
+
   defaultConfig {
     applicationId "com.joom.paranoid.processor.subproject"
+    namespace "com.joom.paranoid.processor.subproject"
     minSdkVersion androidMinSdkVersion
     targetSdkVersion androidTargetSdkVersion
     versionCode 1
@@ -37,6 +51,5 @@ dependencies {
 }
 
 paranoid {
-  includeSubprojects true
   obfuscationSeed version.hashCode()
 }

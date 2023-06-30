@@ -18,7 +18,6 @@ package com.joom.paranoid.processor
 
 import com.joom.grip.Grip
 import com.joom.grip.GripFactory
-import com.joom.grip.io.DirectoryFileSink
 import com.joom.grip.io.IoFactory
 import com.joom.grip.mirrors.getObjectTypeByInternalName
 import com.joom.paranoid.processor.commons.closeQuietly
@@ -28,12 +27,12 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.commons.Method
 import java.io.File
+import java.nio.file.Paths
 
 class ParanoidProcessor(
   private val obfuscationSeed: Int,
   private val inputs: List<File>,
-  private val outputs: List<File>,
-  private val genPath: File,
+  private val output: File,
   private val classpath: Collection<File>,
   private val validationClasspath: Collection<File>,
   private val bootClasspath: Collection<File>,
@@ -51,10 +50,6 @@ class ParanoidProcessor(
   fun process() {
     dumpConfiguration()
 
-    require(inputs.size == outputs.size) {
-      "Input collection $inputs and output collection $outputs have different sizes"
-    }
-
     if (validateClasspath) {
       validator.validate(validationClasspath)
     }
@@ -65,31 +60,32 @@ class ParanoidProcessor(
     val deobfuscator = createDeobfuscator()
     logger.info("Prepare to generate {}", deobfuscator)
 
-    val sourcesAndSinks = inputs.zip(outputs) { input, output ->
-      IoFactory.createFileSource(input) to IoFactory.createFileSink(input, output)
+    val sources = inputs.map {
+      IoFactory.createFileSource(it)
     }
 
+    val sink = createFileSink(output)
+
     try {
-      Patcher(deobfuscator, stringRegistry, analysisResult, grip.classRegistry, asmApi)
-        .copyAndPatchClasses(sourcesAndSinks)
-      DirectoryFileSink(genPath).use { sink ->
-        val deobfuscatorBytes = DeobfuscatorGenerator(deobfuscator, stringRegistry, grip.classRegistry)
-          .generateDeobfuscator()
-        sink.createFile("${deobfuscator.type.internalName}.class", deobfuscatorBytes)
-      }
+      Patcher(deobfuscator, stringRegistry, analysisResult, grip.classRegistry, asmApi).copyAndPatchClasses(sources, sink)
+      val deobfuscatorBytes = DeobfuscatorGenerator(deobfuscator, stringRegistry, grip.classRegistry)
+        .generateDeobfuscator()
+      val deobfuscatorPath = "${deobfuscator.type.internalName}.class"
+
+      sink.createFile(deobfuscatorPath, deobfuscatorBytes)
+      sink.flush()
     } finally {
-      sourcesAndSinks.forEach { (source, sink) ->
-        source.closeQuietly()
-        sink.closeQuietly()
+      sources.forEach {
+        it.closeQuietly()
       }
+      sink.closeQuietly()
     }
   }
 
   private fun dumpConfiguration() {
     logger.info("Starting ParanoidProcessor:")
     logger.info("  inputs        = {}", inputs)
-    logger.info("  outputs       = {}", outputs)
-    logger.info("  genPath       = {}", genPath)
+    logger.info("  output        = {}", output)
     logger.info("  classpath     = {}", classpath)
     logger.info("  bootClasspath = {}", bootClasspath)
     logger.info("  projectName   = {}", projectName)

@@ -8,6 +8,7 @@ android {
 
   defaultConfig {
     applicationId "com.joom.paranoid.processor.allcharsstring"
+    namespace "com.joom.paranoid.processor.allcharsstring"
     minSdkVersion androidMinSdkVersion
     targetSdkVersion androidTargetSdkVersion
     versionCode 1

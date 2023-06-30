@@ -17,13 +17,12 @@ class ParanoidPluginTest {
   val temporaryFolder = TemporaryFolder()
 
   @Test
-  fun `agp version with legacy transform`() {
+  fun `agp version with legacy transform not supported`() {
     val projectRoot = createProjectDirectory(agpVersion = "7.1.0")
 
-    val result = createGradleRunner(projectRoot).build()
+    val result = createGradleRunner(projectRoot).buildAndFail()
 
-    val tasks = result.parseDryRunExecution()
-    Assert.assertTrue(tasks.any { it.path == ":transformClassesWithParanoidForDebug" })
+    Assert.assertTrue("Should contain message", result.output.contains("Paranoid requires Android Gradle Plugin version 7.2.0"))
   }
 
   @Test

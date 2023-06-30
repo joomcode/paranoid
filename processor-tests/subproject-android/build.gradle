@@ -5,7 +5,12 @@ android {
   compileSdkVersion androidCompileSdkVersion
   buildToolsVersion androidBuildToolsVersion
 
+  buildFeatures {
+    buildConfig = true
+  }
+
   defaultConfig {
+    namespace "com.joom.paranoid.processor.subproject.android"
     minSdkVersion androidMinSdkVersion
     targetSdkVersion androidTargetSdkVersion
     versionCode 1

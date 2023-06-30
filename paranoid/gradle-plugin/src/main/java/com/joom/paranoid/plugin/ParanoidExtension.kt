@@ -28,14 +28,7 @@ open class ParanoidExtension {
     if (enabled) applyToBuildTypes = BuildType.ALL else BuildType.NONE
   }
 
-  @Deprecated(IS_CACHEABLE_DEPRECATION_WARNING)
-  var isCacheable: Boolean by deprecatedProperty(false, IS_CACHEABLE_DEPRECATION_WARNING)
-
-  @Deprecated(INCLUDE_SUBPROJECT_DEPRECATION_WARNING)
-  var includeSubprojects by deprecatedProperty(false, INCLUDE_SUBPROJECT_DEPRECATION_WARNING)
-
   var obfuscationSeed: Int? = null
-  var bootClasspath: List<File> = emptyList()
   var applyToBuildTypes: BuildType = BuildType.ALL
 
   private inline fun <reified T : Any> deprecatedProperty(initial: T, message: String, crossinline onChange: (T) -> Unit = {}): ReadWriteProperty<Any?, T> {
@@ -53,5 +46,3 @@ enum class BuildType {
 }
 
 private const val IS_ENABLED_DEPRECATION_WARNING = "paranoid.enabled is deprecated. Use paranoid.applyToBuildTypes"
-private const val IS_CACHEABLE_DEPRECATION_WARNING = "paranoid.isCacheable is deprecated"
-private const val INCLUDE_SUBPROJECT_DEPRECATION_WARNING = "paranoid.includeSubprojects is deprecated"

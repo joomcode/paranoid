@@ -35,7 +35,7 @@ class MainActivityTest {
     val suffix = if (BuildConfig.DEBUG) "Debug" else "Release"
     val className = "com.joom.paranoid.Deobfuscator\$processortests\$subproject$$suffix"
 
-    verifyDeobfuscatorGenerated(className = className, expectedString = "Subprojects: ")
+    verifyDeobfuscatorGenerated(className = className, expectedString = "Subprojects:")
   }
 
   @Test
@@ -66,6 +66,7 @@ class MainActivityTest {
     val chunksField = deobfuscatorClass.getDeclaredField("chunks")
 
     chunksField.isAccessible = true
+    @Suppress("UNCHECKED_CAST")
     val chunks = chunksField[null] as Array<String>
 
     Assert.assertNotNull(chunks)

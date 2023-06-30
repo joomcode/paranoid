@@ -36,6 +36,12 @@ jobs:
       - name: Run functional test
         run: ./gradlew -p paranoid -Ppablo.shadow.enabled=true functionalTest
 
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: functional-test-report
+          path: paranoid/build/reports/tests/functionalTest
+
       - name: Run unit tests
         run: ./gradlew check -x lint -Pdevelopment=false -Dorg.gradle.unsafe.configuration-cache=true
 
