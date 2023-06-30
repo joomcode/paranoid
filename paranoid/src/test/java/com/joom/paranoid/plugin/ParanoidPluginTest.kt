@@ -10,6 +10,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import java.net.URI
 
 class ParanoidPluginTest {
 
@@ -20,7 +21,7 @@ class ParanoidPluginTest {
   fun `agp version with legacy transform not supported`() {
     val projectRoot = createProjectDirectory(agpVersion = "7.1.0")
 
-    val result = createGradleRunner(projectRoot).buildAndFail()
+    val result = createGradleRunner(projectRoot, GradleDistribution.GRADLE_7_5).buildAndFail()
 
     Assert.assertTrue("Should contain message", result.output.contains("Paranoid requires Android Gradle Plugin version 7.2.0"))
   }
@@ -29,17 +30,17 @@ class ParanoidPluginTest {
   fun `agp version with all classes transform`() {
     val projectRoot = createProjectDirectory(agpVersion = "7.2.0")
 
-    val result = createGradleRunner(projectRoot).build()
+    val result = createGradleRunner(projectRoot, GradleDistribution.GRADLE_7_5).build()
 
     val tasks = result.parseDryRunExecution()
     Assert.assertTrue(tasks.any { it.path == ":paranoidTransformClassesDebug" })
   }
 
   @Test
-  fun `actual agp version`() {
-    val projectRoot = createProjectDirectory(agpVersion = "7.4.2")
+  fun `agp version with scoped artifacts`() {
+    val projectRoot = createProjectDirectory(agpVersion = "8.0.2")
 
-    val result = createGradleRunner(projectRoot).build()
+    val result = createGradleRunner(projectRoot, GradleDistribution.GRADLE_8_0).build()
 
     val tasks = result.parseDryRunExecution()
     Assert.assertTrue(tasks.any { it.path == ":paranoidTransformClassesDebug" })
@@ -52,8 +53,9 @@ class ParanoidPluginTest {
     return projectRoot
   }
 
-  private fun createGradleRunner(projectDir: File): GradleRunner {
+  private fun createGradleRunner(projectDir: File, gradle: GradleDistribution): GradleRunner {
     return GradleRunner.create()
+      .withGradleDistribution(URI.create(gradle.url))
       .forwardOutput()
       .withProjectDir(projectDir)
       .withArguments("assembleDebug", "--dry-run", "--stacktrace")
