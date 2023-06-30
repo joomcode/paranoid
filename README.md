@@ -18,7 +18,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.joom.paranoid:paranoid-gradle-plugin:0.3.7'
+    classpath 'com.joom.paranoid:paranoid-gradle-plugin:0.3.14'
   }
 }
 
@@ -29,12 +29,11 @@ apply plugin: 'com.joom.paranoid'
 Now you can just annotate classes with strings that need to be obfuscated with `@Obfuscate`.
 After you project compiles every string in annotated classes will be obfuscated.
 
-When using Android Gradle Plugin 7.1.0 and later the plugin must be applied to every 
-Gradle project that has classes with `@Obfuscate` annotation.
+The plugin must be applied to every Gradle module that has classes with `@Obfuscate` annotation.
 
 Configuration
 -------------
-Paranoid plugin can be configured using `paranoid` extension object:
+Paranoid plugin can be configured using `paranoid` extension:
 ```groovy
 paranoid {
   // ...
@@ -42,14 +41,10 @@ paranoid {
 
 ```
 
-The extension object contains the following properties:
+The extension contains the following properties:
 - `obfuscationSeed` - `Integer`. A seed that can be used to make obfuscation stable across builds. Default value is `null`, which means that the seed
   is computed from input files on each build.
 - `applyToBuildTypes` - Allows to apply paranoid transform for specific build types. Possible values are `'ALL'`, `'NONE'`, `'NOT_DEBUGGABLE'`. Default value is `'ALL'`
-- `cacheable` — `boolean`. Allows to enable caching for the transform. Default value is `false`. *Deprecated*. When using AGP 7.1.0 and later the transformation
-is cacheable by default.
-- `includeSubprojects` — `boolean`. Allows to enable obfuscation for subprojects. Default value is `false`. *Deprecated*. When using AGP 7.1.0 and later the plugin
-*must* be applied to every subproject with classes annotated by `@Obfuscate` annotation.
 - `enabled` — `boolean`. Allows to disable obfuscation for the project. Default value is `true`. *Deprecated*. Use `applyToBuildTypes = 'NONE'`
 
 How it works
@@ -102,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
 License
 =======
-    Copyright 2022 SIA Joom
+    Copyright 2023 SIA Joom
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
