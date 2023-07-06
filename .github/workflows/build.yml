@@ -28,7 +28,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
 
       - name: Publish bootstrap artifacts
         run: ./gradlew -p paranoid publishToMavenLocal -Pdevelopment=false -Ppablo.shadow.enabled=true ${{ env.PABLO_OPTS }}
@@ -65,7 +65,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
 
       - name: Publish bootstrap artifacts
         run: ./gradlew -p paranoid publishToMavenLocal -Pdevelopment=false -Ppablo.shadow.enabled=true ${{ env.PABLO_OPTS }}
@@ -94,7 +94,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
 
       - name: Upload Artifacts
         run: ./gradlew -p paranoid publishMavenPublicationToSonatypeRepository -Pdevelopment=false -Ppablo.shadow.enabled=true ${{ env.PABLO_OPTS }}
