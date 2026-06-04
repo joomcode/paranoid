@@ -38,6 +38,13 @@ class Patcher(
 
   private val logger = getLogger()
 
+  fun copyAndPatchClasses(sources: List<FileSource>, sink: FileSink) {
+    sources.forEach {
+      copyAndPatchClasses(it, sink)
+      sink.flush()
+    }
+  }
+
   fun copyAndPatchClasses(sourcesAndSinks: List<Pair<FileSource, FileSink>>) {
     sourcesAndSinks.forEach { (source, sink) ->
       copyAndPatchClasses(source, sink)

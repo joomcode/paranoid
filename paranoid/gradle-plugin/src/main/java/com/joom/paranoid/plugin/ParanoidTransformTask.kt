@@ -22,6 +22,8 @@ import org.gradle.api.GradleScriptException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.CacheableTask
@@ -31,6 +33,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
@@ -38,7 +41,11 @@ import java.io.File
 abstract class ParanoidTransformTask : DefaultTask() {
   @get:InputFiles
   @get:Classpath
-  abstract val inputClasses: ListProperty<Directory>
+  abstract val inputClasses: ListProperty<RegularFile>
+
+  @get:InputFiles
+  @get:Classpath
+  abstract val inputDirectories: ListProperty<Directory>
 
   @get:InputFiles
   @get:Classpath
@@ -52,9 +59,13 @@ abstract class ParanoidTransformTask : DefaultTask() {
   @get:Classpath
   abstract val bootClasspath: ConfigurableFileCollection
 
+  @get:OutputFile
+  @get:Optional
+  abstract val output: RegularFileProperty
+
   @get:OutputDirectory
   @get:Optional
-  abstract val output: DirectoryProperty
+  abstract val outputDirectory: DirectoryProperty
 
   @get:OutputDirectories
   @get:Optional
@@ -81,20 +92,22 @@ abstract class ParanoidTransformTask : DefaultTask() {
       cleanOutput()
 
       val outputs = when {
-        output.isPresent -> List(inputClasses.get().size) { output.get().asFile }
+        output.isPresent -> List(getTransformInputs().size) { output.get().asFile }
+        outputDirectory.isPresent -> List(getTransformInputs().size) { outputDirectory.get().asFile }
         outputDirectories.isPresent -> outputDirectories.get()
-        else -> error("output or outputDirectories is not set")
+        else -> error("output, outputDirectory or outputDirectories is not set")
       }
 
       val genPath = when {
         output.isPresent -> output.get().asFile
+        outputDirectory.isPresent -> outputDirectory.get().asFile
         outputDirectories.isPresent -> outputDirectories.get().first()
-        else -> error("output or outputDirectories is not set")
+        else -> error("output, outputDirectory or outputDirectories is not set")
       }
 
       val processor = ParanoidProcessor(
         obfuscationSeed = calculateObfuscationSeed(),
-        inputs = inputClasses.get().map { it.asFile.toPath() },
+        inputs = getTransformInputs().map { it.toPath() },
         outputs = outputs.map { it.toPath() },
         genPath = genPath.toPath(),
         classpath = classpath.files.map { it.toPath() },
@@ -112,7 +125,11 @@ abstract class ParanoidTransformTask : DefaultTask() {
 
   private fun cleanOutput() {
     if (output.isPresent) {
-      output.get().asFile.deleteRecursively()
+      output.get().asFile.delete()
+    }
+
+    if (outputDirectory.isPresent) {
+      outputDirectory.get().asFile.deleteRecursively()
     }
 
     if (outputDirectories.isPresent) {
@@ -125,16 +142,22 @@ abstract class ParanoidTransformTask : DefaultTask() {
       return it
     }
 
-    return ObfuscationSeedCalculator.calculate(inputClasses.get()) { it.asFile }
+    return ObfuscationSeedCalculator.calculate(getTransformInputs()) { it }
   }
 
   private fun validate() {
-    require(inputClasses.get().isNotEmpty()) { "inputClasses is not set" }
-    require(output.isPresent || outputDirectories.isPresent) { "output is not set" }
+    require(getTransformInputs().isNotEmpty()) { "inputClasses or inputDirectories is not set" }
+    require(output.isPresent || outputDirectory.isPresent || outputDirectories.isPresent) {
+      "output, outputDirectory or outputDirectories is not set"
+    }
   }
 
   private fun computeProjectName(): String {
     return (project.path + name.replace(TASK_PREFIX, ":")).replace(':', '$')
+  }
+
+  private fun getTransformInputs(): List<File> {
+    return inputClasses.get().map { it.asFile } + inputDirectories.get().map { it.asFile }
   }
 
   companion object {

@@ -67,6 +67,15 @@ class ParanoidProcessor(
     val deobfuscator = createDeobfuscator()
     logger.info("Prepare to generate {}", deobfuscator)
 
+    if (outputs.distinct().size == 1) {
+      processToSharedOutput(deobfuscator, analysisResult)
+      return
+    }
+
+    processToDistinctOutputs(deobfuscator, analysisResult)
+  }
+
+  private fun processToDistinctOutputs(deobfuscator: Deobfuscator, analysisResult: AnalysisResult) {
     val sourcesAndSinks = inputs.zip(outputs) { input, output ->
       IoFactory.createFileSource(input) to IoFactory.createFileSink(input, output)
     }
@@ -84,6 +93,22 @@ class ParanoidProcessor(
         source.closeQuietly()
         sink.closeQuietly()
       }
+    }
+  }
+
+  private fun processToSharedOutput(deobfuscator: Deobfuscator, analysisResult: AnalysisResult) {
+    val sources = inputs.map { IoFactory.createFileSource(it) }
+    val sink = createFileSink(outputs.first())
+
+    try {
+      Patcher(deobfuscator, stringRegistry, analysisResult, grip.classRegistry, asmApi).copyAndPatchClasses(sources, sink)
+      val deobfuscatorBytes = DeobfuscatorGenerator(deobfuscator, stringRegistry, grip.classRegistry)
+        .generateDeobfuscator()
+      sink.createFile("${deobfuscator.type.internalName}.class", deobfuscatorBytes)
+      sink.flush()
+    } finally {
+      sources.forEach { it.closeQuietly() }
+      sink.closeQuietly()
     }
   }
 

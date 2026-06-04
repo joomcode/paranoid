@@ -17,17 +17,12 @@
 package com.joom.paranoid.plugin
 
 import com.android.build.api.AndroidPluginVersion
-import com.android.build.api.artifact.Artifact
-import com.android.build.api.artifact.Artifact.Category
-import com.android.build.api.artifact.Artifact.Transformable
-import com.android.build.api.artifact.ArtifactKind
 import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.api.variant.Variant
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
-import org.gradle.api.file.Directory
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.compile.JavaCompile
 import java.io.File
@@ -110,7 +105,7 @@ class ParanoidPlugin : Plugin<Project> {
       task.bootClasspath.setFrom(javaCompileTask.options.bootstrapClasspath?.files.orEmpty())
       task.classpath.setFrom(javaCompileTask.classpath)
       task.validationClasspath.setFrom(runtimeClasspath.map { it.incomingJarArtifacts { it is ProjectComponentIdentifier }.artifactFiles })
-      task.inputClasses.set(backupDirs.map { file -> project.layout.dir(project.provider { file }).get() })
+      task.inputDirectories.set(backupDirs.map { file -> project.layout.dir(project.provider { file }).get() })
       task.outputDirectories.set(input)
       task.onlyIf { extension.applyToBuildTypes != BuildType.NONE }
 
@@ -147,9 +142,7 @@ class ParanoidPlugin : Plugin<Project> {
   ) {
     val taskProvider = project.registerTask<ParanoidTransformTask>(formatParanoidTaskName(name))
 
-    artifacts.use(taskProvider)
-      .wiredWith(ParanoidTransformTask::inputClasses, ParanoidTransformTask::output)
-      .toTransform(ArtifactAllClasses)
+    ScopedArtifactsRegisterAction.register(this, taskProvider)
 
     val runtimeClasspath = project.configurations.getByName("${name}RuntimeClasspath")
 
@@ -190,11 +183,6 @@ class ParanoidPlugin : Plugin<Project> {
   private fun Project.addDependencies(configurationName: String) {
     dependencies.add(configurationName, "com.joom.paranoid:paranoid-core:${Build.VERSION}")
   }
-
-  private object ArtifactAllClasses : Artifact.Multiple<Directory>(
-    kind = ArtifactKind.DIRECTORY,
-    category = Category.INTERMEDIATES
-  ), Transformable
 
   private companion object {
     private val MIN_AGP_VERSION = AndroidPluginVersion(major = 7, minor = 4, micro = 0)
