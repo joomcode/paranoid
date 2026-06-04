@@ -1,20 +1,18 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 apply plugin: 'com.joom.paranoid'
 
 android {
-  compileSdkVersion androidCompileSdkVersion
-  buildToolsVersion androidBuildToolsVersion
+  namespace 'com.joom.paranoid.processor.allcharsstring'
+  compileSdk androidCompileSdkVersion
 
   defaultConfig {
-    applicationId "com.joom.paranoid.processor.allcharsstring"
-    namespace "com.joom.paranoid.processor.allcharsstring"
+    applicationId 'com.joom.paranoid.processor.allcharsstring'
     minSdkVersion androidMinSdkVersion
     targetSdkVersion androidTargetSdkVersion
     versionCode 1
     versionName version
 
-    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
   }
 
   buildTypes {
@@ -22,10 +20,21 @@ android {
       minifyEnabled false
     }
   }
+
+  compileOptions {
+    sourceCompatibility javaVersion
+    targetCompatibility javaVersion
+  }
+}
+
+kotlin {
+  compilerOptions {
+    jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+  }
 }
 
 dependencies {
-  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+  implementation "org.jetbrains.kotlin:kotlin-stdlib$kotlinRuntimeVariant:$kotlinVersion"
 
   androidTestImplementation "androidx.test:rules:$androidxRulesVersion"
   androidTestImplementation "androidx.test:runner:$androidxRunnerVersion"

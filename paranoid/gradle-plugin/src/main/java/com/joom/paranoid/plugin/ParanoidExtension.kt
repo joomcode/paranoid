@@ -17,7 +17,6 @@
 package com.joom.paranoid.plugin
 
 import com.joom.paranoid.processor.logging.getLogger
-import java.io.File
 import kotlin.properties.Delegates
 import kotlin.properties.ReadWriteProperty
 

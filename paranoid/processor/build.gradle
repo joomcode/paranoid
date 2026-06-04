@@ -1,8 +1,26 @@
-apply plugin: 'kotlin'
-apply from: "$rootDir/pablo.gradle"
+apply plugin: 'java-library'
+apply plugin: 'org.jetbrains.kotlin.jvm'
+apply plugin: 'com.gradleup.shadow'
+apply from: "$rootDir/shadow-common.gradle"
+apply from: "$rootDir/publish.gradle"
+apply from: "$rootDir/shadow-publish.gradle"
 
-sourceCompatibility = javaVersion
-targetCompatibility = javaVersion
+java {
+  sourceCompatibility = javaVersion
+  targetCompatibility = javaVersion
+}
+
+kotlin {
+  compilerOptions {
+    jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+    apiVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.fromVersion(kotlinLanguageVersion)
+    languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.fromVersion(kotlinLanguageVersion)
+  }
+}
+
+mavenPublishing {
+  coordinates(project.group.toString(), 'paranoid-processor', project.version.toString())
+}
 
 compileKotlin {
   kotlinOptions {
@@ -22,7 +40,7 @@ test {
 
 dependencies {
   implementation project(':core')
-  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+  implementation "org.jetbrains.kotlin:kotlin-stdlib$kotlinRuntimeVariant:$kotlinVersion"
   implementation "ch.qos.logback:logback-classic:$logbackVersion"
 
   relocate "org.ow2.asm:asm:$asmVersion"
@@ -32,14 +50,12 @@ dependencies {
   testImplementation "junit:junit:$junitVersion"
 }
 
-jar {
-  destinationDirectory.set(file('build/jar'))
+shadow {
+  addShadowVariantIntoJavaComponent = false
 }
 
-pablo {
-  shadow {
-    relocate 'com.joom.paranoid'
-    relocate 'com.joom.grip', 'com.joom.paranoid.grip'
-    relocate 'org.objectweb.asm', 'com.joom.paranoid.asm'
-  }
+tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar).configure {
+  configurations = [project.configurations.runtimeClasspath, project.configurations.relocate]
+  relocate('com.joom.grip', 'com.joom.paranoid.grip')
+  relocate('org.objectweb.asm', 'com.joom.paranoid.asm')
 }

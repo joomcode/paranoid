@@ -19,22 +19,23 @@ package com.joom.paranoid.processor
 import com.joom.grip.Grip
 import com.joom.grip.classes
 import com.joom.paranoid.processor.watermark.WatermarkChecker
-import java.io.File
+import java.nio.file.Path
 
 class Validator(private val grip: Grip, private val asmApi: Int) {
 
-  fun validate(inputs: Collection<File>) {
+  fun validate(inputs: Collection<Path>) {
     val errors = ArrayList<String>()
     val registry = newObfuscatedTypeRegistry(grip.classRegistry).withCache()
     val query = grip select classes from inputs where registry.shouldObfuscate()
-    query.execute().types.forEach {
-      val file = grip.fileRegistry.findFileForType(it) ?: run {
-        errors += "File not found for class ${it.className}"
+    query.execute().types.forEach { type ->
+      if (!grip.fileRegistry.contains(type)) {
+        errors += "File not found for class ${type.className}"
         return@forEach
       }
 
-      if (!WatermarkChecker.isParanoidClass(file, asmApi)) {
-        errors += "Class ${it.className} is not processed by paranoid, is paranoid plugin applied to module?"
+      val bytes = grip.fileRegistry.readClass(type)
+      if (!WatermarkChecker.isParanoidClass(bytes, asmApi)) {
+        errors += "Class ${type.className} is not processed by paranoid, is paranoid plugin applied to module?"
       }
     }
 

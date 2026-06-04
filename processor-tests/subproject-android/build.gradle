@@ -2,8 +2,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.joom.paranoid'
 
 android {
-  compileSdkVersion androidCompileSdkVersion
-  buildToolsVersion androidBuildToolsVersion
+  namespace 'com.joom.paranoid.processor.subproject.android'
+  compileSdk androidCompileSdkVersion
 
   buildFeatures {
     buildConfig = true
@@ -15,5 +15,10 @@ android {
     targetSdkVersion androidTargetSdkVersion
     versionCode 1
     versionName version
+  }
+
+  compileOptions {
+    sourceCompatibility javaVersion
+    targetCompatibility javaVersion
   }
 }

@@ -19,7 +19,6 @@ package com.joom.paranoid.processor.watermark
 import org.objectweb.asm.Attribute
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
-import java.io.File
 import java.io.IOException
 
 class WatermarkChecker(asmApi: Int) : ClassVisitor(asmApi) {
@@ -44,16 +43,10 @@ class WatermarkChecker(asmApi: Int) : ClassVisitor(asmApi) {
   }
 
   companion object {
-    private const val CLASS_EXTENSION = "class"
-
     @Throws(IOException::class)
     @JvmStatic
-    fun isParanoidClass(file: File, asmApi: Int): Boolean {
-      if (!file.extension.equals(CLASS_EXTENSION, true)) {
-        return false
-      }
-
-      val classReader = ClassReader(file.readBytes())
+    fun isParanoidClass(bytes: ByteArray, asmApi: Int): Boolean {
+      val classReader = ClassReader(bytes)
       val checker = WatermarkChecker(asmApi)
       classReader.accept(
         checker,

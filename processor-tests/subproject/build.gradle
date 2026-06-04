@@ -1,33 +1,18 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 apply plugin: 'com.joom.paranoid'
 
 android {
-  compileSdkVersion androidCompileSdkVersion
-  buildToolsVersion androidBuildToolsVersion
-
-  buildFeatures {
-    buildConfig = true
-  }
-
-  compileOptions {
-    targetCompatibility = javaVersion
-    sourceCompatibility = javaVersion
-
-    kotlinOptions {
-      jvmTarget = javaVersion
-    }
-  }
+  namespace 'com.joom.paranoid.processor.subproject'
+  compileSdk androidCompileSdkVersion
 
   defaultConfig {
-    applicationId "com.joom.paranoid.processor.subproject"
-    namespace "com.joom.paranoid.processor.subproject"
+    applicationId 'com.joom.paranoid.processor.subproject'
     minSdkVersion androidMinSdkVersion
     targetSdkVersion androidTargetSdkVersion
     versionCode 1
     versionName version
 
-    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
   }
 
   buildTypes {
@@ -35,13 +20,24 @@ android {
       minifyEnabled false
     }
   }
+
+  compileOptions {
+    sourceCompatibility javaVersion
+    targetCompatibility javaVersion
+  }
+}
+
+kotlin {
+  compilerOptions {
+    jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+  }
 }
 
 dependencies {
-  implementation project(":processor-tests:subproject-android")
-  implementation project(":processor-tests:subproject-java")
+  implementation project(':processor-tests:subproject-android')
+  implementation project(':processor-tests:subproject-java')
 
-  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+  implementation "org.jetbrains.kotlin:kotlin-stdlib$kotlinRuntimeVariant:$kotlinVersion"
 
   androidTestImplementation "androidx.annotation:annotation:$androidxAnnotationVersion"
   androidTestImplementation "androidx.test:rules:$androidxRulesVersion"

@@ -22,8 +22,6 @@ import org.gradle.api.GradleScriptException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RegularFile
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.CacheableTask
@@ -31,19 +29,16 @@ import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import java.io.File
 
 @CacheableTask
 abstract class ParanoidTransformTask : DefaultTask() {
   @get:InputFiles
   @get:Classpath
-  abstract val inputClasses: ListProperty<RegularFile>
-
-  @get:InputFiles
-  @get:Classpath
-  abstract val inputDirectories: ListProperty<Directory>
+  abstract val inputClasses: ListProperty<Directory>
 
   @get:InputFiles
   @get:Classpath
@@ -57,13 +52,13 @@ abstract class ParanoidTransformTask : DefaultTask() {
   @get:Classpath
   abstract val bootClasspath: ConfigurableFileCollection
 
-  @get:OutputFile
-  @get:Optional
-  abstract val output: RegularFileProperty
-
   @get:OutputDirectory
   @get:Optional
-  abstract val outputDirectory: DirectoryProperty
+  abstract val output: DirectoryProperty
+
+  @get:OutputDirectories
+  @get:Optional
+  abstract val outputDirectories: ListProperty<File>
 
   @Input
   @Optional
@@ -85,19 +80,26 @@ abstract class ParanoidTransformTask : DefaultTask() {
 
       cleanOutput()
 
-      val outputFile = when {
-        output.isPresent -> output.asFile
-        outputDirectory.isPresent -> outputDirectory.asFile
-        else -> error("output or outputDirectory is not set")
+      val outputs = when {
+        output.isPresent -> List(inputClasses.get().size) { output.get().asFile }
+        outputDirectories.isPresent -> outputDirectories.get()
+        else -> error("output or outputDirectories is not set")
+      }
+
+      val genPath = when {
+        output.isPresent -> output.get().asFile
+        outputDirectories.isPresent -> outputDirectories.get().first()
+        else -> error("output or outputDirectories is not set")
       }
 
       val processor = ParanoidProcessor(
         obfuscationSeed = calculateObfuscationSeed(),
-        inputs = inputClasses.get().map { it.asFile } + inputDirectories.get().map { it.asFile },
-        output = outputFile.get(),
-        classpath = classpath.files,
-        bootClasspath = bootClasspath.files,
-        validationClasspath = validationClasspath.files,
+        inputs = inputClasses.get().map { it.asFile.toPath() },
+        outputs = outputs.map { it.toPath() },
+        genPath = genPath.toPath(),
+        classpath = classpath.files.map { it.toPath() },
+        bootClasspath = bootClasspath.files.map { it.toPath() },
+        validationClasspath = validationClasspath.files.map { it.toPath() },
         validateClasspath = validateClasspath,
         projectName = projectName,
       )
@@ -110,11 +112,11 @@ abstract class ParanoidTransformTask : DefaultTask() {
 
   private fun cleanOutput() {
     if (output.isPresent) {
-      output.get().asFile.delete()
+      output.get().asFile.deleteRecursively()
     }
 
-    if (outputDirectory.isPresent) {
-      outputDirectory.get().asFile.deleteRecursively()
+    if (outputDirectories.isPresent) {
+      outputDirectories.get().forEach { it.deleteRecursively() }
     }
   }
 
@@ -127,8 +129,8 @@ abstract class ParanoidTransformTask : DefaultTask() {
   }
 
   private fun validate() {
-    require(inputClasses.get().isNotEmpty() || inputDirectories.get().isNotEmpty()) { "inputClasses or inputDirectories is not set" }
-    require(output.isPresent || outputDirectory.isPresent) { "output or outputDirectory is not set" }
+    require(inputClasses.get().isNotEmpty()) { "inputClasses is not set" }
+    require(output.isPresent || outputDirectories.isPresent) { "output is not set" }
   }
 
   private fun computeProjectName(): String {

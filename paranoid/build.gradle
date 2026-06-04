@@ -1,27 +1,29 @@
 buildscript {
   apply from: '../versions.gradle'
 
-  allprojects {
-    group = PARANOID_GROUP
-    version = PARANOID_VERSION
+  repositories {
+    mavenLocal()
+    google()
+    mavenCentral()
+    gradlePluginPortal()
+  }
 
-    buildscript {
-      repositories {
-        google()
-        mavenCentral()
-      }
+  dependencies {
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    classpath "com.android.tools.build:gradle:$androidToolsVersion"
+    classpath "com.vanniktech:gradle-maven-publish-plugin:$mavenPublishVersion"
+    classpath "com.gradleup.shadow:shadow-gradle-plugin:$shadowVersion"
+  }
+}
 
-      dependencies {
-        classpath "com.android.tools.build:gradle:$androidToolsVersion"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        classpath "io.michaelrocks.pablo:pablo:$pabloVersion"
-      }
-    }
+allprojects {
+  version = PARANOID_VERSION
+  group = PARANOID_GROUP
 
-    repositories {
-      google()
-      mavenCentral()
-    }
+  repositories {
+    mavenLocal()
+    google()
+    mavenCentral()
   }
 }
 

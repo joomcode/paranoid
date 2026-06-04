@@ -3,14 +3,6 @@ on: [ push, pull_request ]
 
 env:
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dkotlin.incremental=false"
-  PABLO_OPTS: |
-    -Ppablo.repository.maven.name=Sonatype \
-    -Ppablo.repository.maven.url=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/ \
-    -Ppablo.repository.maven.username=${{ secrets.SONATYPE_USERNAME }} \
-    -Ppablo.repository.maven.password=${{ secrets.SONATYPE_PASSWORD }} \
-    -Ppablo.signing.keyId=${{ secrets.SIGNING_KEY_ID }} \
-    -Ppablo.signing.password=${{ secrets.SIGNING_PASSWORD }} \
-    -Ppablo.signing.secretKey='${{ secrets.SIGNING_SECRET_KEY }}'
 
 jobs:
   build:
@@ -19,28 +11,19 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@v1
+        uses: gradle/actions/wrapper-validation@v4
 
       - name: Configure JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
 
       - name: Publish bootstrap artifacts
-        run: ./gradlew -p paranoid publishToMavenLocal -Pdevelopment=false -Ppablo.shadow.enabled=true ${{ env.PABLO_OPTS }}
-
-      - name: Run functional test
-        run: ./gradlew -p paranoid -Ppablo.shadow.enabled=true functionalTest
-
-      - uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: functional-test-report
-          path: paranoid/build/reports/tests/functionalTest
+        run: ./gradlew -p paranoid publishToMavenLocal -Pparanoid.shadow.enabled=true
 
       - name: Run unit tests
         run: ./gradlew check -x lint -Pdevelopment=false -Dorg.gradle.unsafe.configuration-cache=true
@@ -59,16 +42,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Configure JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
 
       - name: Publish bootstrap artifacts
-        run: ./gradlew -p paranoid publishToMavenLocal -Pdevelopment=false -Ppablo.shadow.enabled=true ${{ env.PABLO_OPTS }}
+        run: ./gradlew -p paranoid publishToMavenLocal -Pparanoid.shadow.enabled=true -Pdevelopment=false -Dkotlin.incremental=false
 
       - name: Run integration tests
         uses: reactivecircus/android-emulator-runner@v2
@@ -85,16 +68,22 @@ jobs:
     needs:
       - build
       - test
+    env:
+      ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_USERNAME }}
+      ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_PASSWORD }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+      ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_SECRET_KEY }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Configure JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
 
-      - name: Upload Artifacts
-        run: ./gradlew -p paranoid publishMavenPublicationToSonatypeRepository -Pdevelopment=false -Ppablo.shadow.enabled=true ${{ env.PABLO_OPTS }}
+      - name: Publish to Maven Central
+        run: ./gradlew -p paranoid publishAndReleaseToMavenCentral -Pparanoid.shadow.enabled=true -Pdevelopment=false

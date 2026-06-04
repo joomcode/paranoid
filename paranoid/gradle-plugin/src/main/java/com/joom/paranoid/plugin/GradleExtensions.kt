@@ -3,7 +3,7 @@ package com.joom.paranoid.plugin
 import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.api.variant.LibraryAndroidComponentsExtension
-import com.android.build.gradle.BaseExtension
+import com.android.build.api.dsl.CommonExtension
 import com.android.build.gradle.internal.publishing.AndroidArtifacts
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -25,11 +25,11 @@ val Project.sourceSets: SourceSetContainer
   }
 
 val Project.hasAndroid: Boolean
-  get() = extensions.findByName("android") is BaseExtension
+  get() = extensions.findByName("android") is CommonExtension
 val Project.hasJava: Boolean
   get() = extensions.findByType(JavaPluginExtension::class.java) != null
-val Project.android: BaseExtension
-  get() = extensions.getByName("android") as BaseExtension
+val Project.android: CommonExtension
+  get() = extensions.getByName("android") as CommonExtension
 val Project.java: JavaPluginExtension
   get() = extensions.getByType(JavaPluginExtension::class.java)
 

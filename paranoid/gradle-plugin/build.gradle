@@ -1,35 +1,68 @@
-apply plugin: 'kotlin'
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+evaluationDependsOn(':processor')
+
+apply plugin: 'java-library'
+apply plugin: 'org.jetbrains.kotlin.jvm'
 apply plugin: 'idea'
-apply from: "$rootDir/pablo.gradle"
+apply plugin: 'com.gradleup.shadow'
+apply from: "$rootDir/publish.gradle"
+apply from: "$rootDir/shadow-publish.gradle"
 
-targetCompatibility = javaVersion
-sourceCompatibility = javaVersion
+java {
+  sourceCompatibility = javaVersion
+  targetCompatibility = javaVersion
+}
 
-compileKotlin {
-  kotlinOptions {
-    jvmTarget = javaVersion
+kotlin {
+  compilerOptions {
+    jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+    apiVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.fromVersion(kotlinLanguageVersion)
+    languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.fromVersion(kotlinLanguageVersion)
   }
 }
 
+mavenPublishing {
+  coordinates(project.group.toString(), 'paranoid-gradle-plugin', project.version.toString())
+}
+
+shadow {
+  addShadowVariantIntoJavaComponent = false
+}
+
 dependencies {
+  implementation "org.jetbrains.kotlin:kotlin-stdlib$kotlinRuntimeVariant:$kotlinVersion"
+
+  compileOnly project(':processor')
   compileOnly gradleApi()
   compileOnly "com.android.tools.build:gradle:$androidToolsVersion"
   compileOnly "com.android.tools.build:gradle-api:$androidToolsVersion"
-
-  relocate project(':processor')
-
-  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
 }
 
-final File generatedDir = new File(projectDir, "generated")
-final File generatedJavaSourcesDir = new File(generatedDir, "main/java")
+afterEvaluate {
+  def processorProject = project(':processor')
+  def processorJar = processorProject.tasks.named('jar')
+  def processorShadowJar = processorProject.tasks.named('shadowJar')
 
-task generateBuildClass {
+  tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar).configure {
+    dependsOn(processorShadowJar, processorJar)
+    configurations = [project.configurations.runtimeClasspath]
+    dependencies {
+      exclude(project(':processor'))
+    }
+    from(processorShadowJar.flatMap { it.archiveFile }.map { zipTree(it) })
+  }
+}
+
+def generatedDir = new File(projectDir, "generated")
+def generatedJavaSourcesDir = new File(generatedDir, "main/java")
+
+tasks.register('generateBuildClass') {
   inputs.property('version', version)
-  outputs.dir generatedDir
+  outputs.dir generatedJavaSourcesDir
 
   doLast {
-    final File buildClassFile = new File(generatedJavaSourcesDir, "com/joom/paranoid/plugin/Build.java")
+    def buildClassFile = new File(generatedJavaSourcesDir, "com/joom/paranoid/plugin/Build.java")
     buildClassFile.parentFile.mkdirs()
     buildClassFile.text = "" +
         "package com.joom.paranoid.plugin;\n" +
@@ -46,9 +79,14 @@ sourceSets {
   }
 }
 
-tasks.getByPath(JavaPlugin.COMPILE_JAVA_TASK_NAME).dependsOn(tasks.generateBuildClass)
-tasks.named('compileKotlin', org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask.class) {
-  it.dependsOn(tasks.generateBuildClass)
+tasks.matching { it instanceof AbstractCompile || it instanceof KotlinCompile }.configureEach {
+  dependsOn tasks.generateBuildClass
+}
+
+project.afterEvaluate {
+  tasks.named(sourceSets.main.getSourcesJarTaskName()).configure {
+    dependsOn tasks.generateBuildClass
+  }
 }
 
 clean.doFirst {
@@ -58,11 +96,5 @@ clean.doFirst {
 idea {
   module {
     generatedSourceDirs += generatedJavaSourcesDir
-  }
-}
-
-pablo {
-  shadow {
-    relocate 'com.joom.paranoid'
   }
 }

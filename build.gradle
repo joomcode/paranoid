@@ -3,6 +3,8 @@ buildscript {
 }
 
 allprojects {
+  apply from: "$rootDir/versions.gradle"
+
   group = PARANOID_GROUP
   version = PARANOID_VERSION
 
@@ -11,6 +13,7 @@ allprojects {
       google()
       mavenLocal()
       mavenCentral()
+      gradlePluginPortal()
     }
 
     dependencies {
@@ -24,5 +27,9 @@ allprojects {
     google()
     mavenLocal()
     mavenCentral()
+  }
+
+  tasks.withType(Test).configureEach {
+    failOnNoDiscoveredTests = false
   }
 }

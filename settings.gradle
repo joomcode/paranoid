@@ -1,3 +1,15 @@
+pluginManagement {
+  buildscript {
+    repositories {
+      mavenCentral()
+      maven { url 'https://storage.googleapis.com/r8-releases/raw' }
+    }
+    dependencies {
+      classpath "com.android.tools:r8:9.1.31"
+    }
+  }
+}
+
 def isDevelopment = properties['development'].toBoolean()
 if (isDevelopment) {
   includeBuild('paranoid') {
@@ -16,4 +28,3 @@ include ':processor-tests:long-string'
 include ':processor-tests:subproject'
 include ':processor-tests:subproject-android'
 include ':processor-tests:subproject-java'
-

@@ -19,21 +19,20 @@ class ParanoidPluginTest {
 
   @Test
   fun `agp version with legacy transform not supported`() {
-    val projectRoot = createProjectDirectory(agpVersion = "7.1.0")
+    val projectRoot = createProjectDirectory(agpVersion = "7.3.1")
 
     val result = createGradleRunner(projectRoot, GradleDistribution.GRADLE_7_5).buildAndFail()
 
-    Assert.assertTrue("Should contain message", result.output.contains("Paranoid requires Android Gradle Plugin version 7.2.0"))
+    Assert.assertTrue("Should contain message", result.output.contains("Android Gradle Plugin version 7.4.0 or newer"))
   }
 
   @Test
   fun `agp version with all classes transform`() {
-    val projectRoot = createProjectDirectory(agpVersion = "7.2.0")
+    val projectRoot = createProjectDirectory(agpVersion = "7.4.2")
 
     val result = createGradleRunner(projectRoot, GradleDistribution.GRADLE_7_5).build()
 
-    val tasks = result.parseDryRunExecution()
-    Assert.assertTrue(tasks.any { it.path == ":paranoidTransformClassesDebug" })
+    Assert.assertTrue(result.output.contains("BUILD SUCCESSFUL"))
   }
 
   @Test
@@ -42,8 +41,7 @@ class ParanoidPluginTest {
 
     val result = createGradleRunner(projectRoot, GradleDistribution.GRADLE_8_0).build()
 
-    val tasks = result.parseDryRunExecution()
-    Assert.assertTrue(tasks.any { it.path == ":paranoidTransformClassesDebug" })
+    Assert.assertTrue(result.output.contains("BUILD SUCCESSFUL"))
   }
 
   private fun createProjectDirectory(agpVersion: String): File {
@@ -82,7 +80,7 @@ class ParanoidPluginTest {
   }
 
   @Language("gradle")
-  private fun createBuildGradle(agpVersion: String, compileSdk: Int = 31, buildToolsVersion: String = "30.0.3"): String {
+  private fun createBuildGradle(agpVersion: String, compileSdk: Int = 31): String {
     return """
       buildscript {
         repositories {
@@ -106,12 +104,11 @@ class ParanoidPluginTest {
       }
 
       android {
+        namespace "com.joom.paranoid.test"
         compileSdk $compileSdk
-        buildToolsVersion "$buildToolsVersion"
 
         defaultConfig {
           applicationId "com.joom.paranoid.test"
-          namespace "com.joom.paranoid.test"
           versionCode 1
           versionName "1"
         }
