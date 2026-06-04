@@ -5,6 +5,10 @@ android {
   namespace 'com.joom.paranoid.processor.subproject'
   compileSdk androidCompileSdkVersion
 
+  buildFeatures {
+    buildConfig = true
+  }
+
   defaultConfig {
     applicationId 'com.joom.paranoid.processor.subproject'
     minSdkVersion androidMinSdkVersion
